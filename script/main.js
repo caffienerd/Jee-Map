@@ -277,14 +277,14 @@ function renderStats() {
 }
 
 function getPaaniLevel(pct) {
-  if (pct === 0)   return { hindi: 'सूखा रेगिस्तान',    sub: 'bhai start toh kar' };
-  if (pct < 15)    return { hindi: 'पैर गीले हुए',       sub: 'bas shuru hua hai' };
-  if (pct < 30)    return { hindi: 'घुटनों तक पानी',    sub: 'thoda aur' };
-  if (pct < 50)    return { hindi: 'कमर तक पानी',       sub: 'halfway there' };
-  if (pct < 70)    return { hindi: 'सीने तक पानी',      sub: 'serious ho gaye' };
-  if (pct < 85)    return { hindi: 'गले तक पानी',       sub: 'almost there bhai' };
-  if (pct < 100)   return { hindi: 'डूबने वाले हो',     sub: 'last stretch' };
-  return           { hindi: 'पार हो गए 🔥',             sub: 'IIT locked in' };
+  if (pct === 0)   return { hindi: 'Standing at the shore',  sub: 'have not even stepped in yet' };
+  if (pct < 15)    return { hindi: 'Ankles in',              sub: 'just getting started' };
+  if (pct < 30)    return { hindi: 'Knees deep',             sub: 'moving, but slowly' };
+  if (pct < 50)    return { hindi: 'Waist deep',             sub: 'halfway there' };
+  if (pct < 70)    return { hindi: 'Chest deep',             sub: 'getting serious now' };
+  if (pct < 85)    return { hindi: 'Neck deep',              sub: 'almost done bhai' };
+  if (pct < 100)   return { hindi: 'Going under',            sub: 'last stretch, do not stop' };
+  return           { hindi: 'Crossed it 🔥',                 sub: 'IIT locked in' };
 }
 
 // ── FILTER PANEL ──────────────────────────────────────────────────────────
