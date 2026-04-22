@@ -379,7 +379,7 @@ function attachEvents() {
       e.stopPropagation();
       const chOrig  = parseInt(btn.dataset.chOrig);
       const topicIdx = parseInt(btn.dataset.topicIdx);
-      const newStatus = Storage.cycleProgress(activeSubject, chOrig, topicIdx);
+      const newStatus = Sync.cycleAndSync(activeSubject, chOrig, topicIdx);
 
       // Update just this button + dot without full re-render
       const cfg = STATUS_CONFIG[newStatus] || STATUS_CONFIG[null];
@@ -483,3 +483,17 @@ themeBtn.addEventListener('click', () => {
 // ── INIT ──────────────────────────────────────────────────────────────────
 renderFilterPanel();
 render();
+
+// Auth: init session, pull from Supabase if logged in
+Auth.init().then(() => {
+  if (Auth.isLoggedIn()) {
+    Sync.pull().then(() => render());
+  }
+});
+
+// On login: pull fresh data and re-render
+Auth.onChange(session => {
+  if (session) {
+    Sync.pull().then(() => render());
+  }
+});

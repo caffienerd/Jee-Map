@@ -670,3 +670,53 @@ body.light .status-btn.status--adv       { background: #f0ffd0 !important; color
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 1px; }
+
+/* ── AUTH ── */
+.auth-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.auth-login {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.auth-login:hover { color: var(--accent); border-color: var(--accent); }
+
+.auth-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+.auth-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+.auth-logout {
+  background: none;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.auth-logout:hover { color: var(--text); }
