@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>JEE Map</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0d0f" id="themeMetaColor"/>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="JEEMap" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <span class="logo">JEE<span class="logo-accent">MAP</span></span>
+      <span class="tagline">know before you go</span>
+      <button id="themeToggle">☀ light</button>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="search topic, chapter..." autocomplete="off" />
+      <span class="search-icon">⌕</span>
+      <button id="filterBtn" title="Filter by tag">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <span class="filter-count"></span>
+      </button>
+    </div>
+    <div id="filterPanel"></div>
+    <div class="tabs">
+      <button class="tab active" data-subject="physics">Physics</button>
+      <button class="tab" data-subject="chemistry">Chemistry</button>
+      <button class="tab" data-subject="maths">Maths</button>
+      <button class="tab tab--stats" data-subject="stats">Stats</button>
+    </div>
+  </header>
+
+  <main id="main"></main>
+
+  <!-- load order matters: data first, then logic -->
+  <script src="script/tags.js"></script>
+  <script src="script/storage.js"></script>
+  <script src="script/subjects/physics.js"></script>
+  <script src="script/subjects/chemistry.js"></script>
+  <script src="script/subjects/maths.js"></script>
+  <script src="script/main.js"></script>
+
+  <!-- register service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>

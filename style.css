@@ -1,0 +1,672 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0d0d0f;
+  --surface:    #141416;
+  --surface2:   #1c1c20;
+  --border:     #2a2a30;
+  --accent:     #c8f135;
+  --accent-dim: #a0c020;
+  --text:       #e8e8ec;
+  --muted:      #6b6b78;
+  --phy:        #5b9cf6;
+  --chem:       #f97316;
+  --math:       #a78bfa;
+  --header-h:   148px;
+  --r:          3px;   /* global radius — sharp but not zero */
+}
+
+body.light {
+  --bg:         #f5f5f0;
+  --surface:    #ffffff;
+  --surface2:   #ececec;
+  --border:     #ddddd8;
+  --accent:     #5a9e08;
+  --accent-dim: #4a8a06;
+  --text:       #1a1a1e;
+  --muted:      #888890;
+  --phy:        #1a6fd4;
+  --chem:       #d45c00;
+  --math:       #6d3fd4;
+}
+
+/* light mode chapter name colors */
+body.light .chapter[data-subject="physics"]   .ch-name { color: #1a4a8a; }
+body.light .chapter[data-subject="chemistry"] .ch-name { color: #8a3a00; }
+body.light .chapter[data-subject="maths"]     .ch-name { color: #4a2a8a; }
+
+body.light .chapter.open { border-color: #c8c8c0; }
+
+html { font-size: 15px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.logo-accent { color: var(--accent); }
+
+.tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── SEARCH ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#searchInput {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 9px 38px 9px 14px;
+  font-size: 0.875rem;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#searchInput::placeholder { color: var(--muted); }
+#searchInput:focus { border-color: var(--accent); }
+
+.search-icon {
+  position: absolute;
+  right: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+/* ── FILTER BUTTON ── */
+#filterBtn {
+  flex-shrink: 0;
+  position: relative;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+#filterBtn:hover { color: var(--text); }
+#filterBtn.active { color: var(--accent); border-color: var(--accent); }
+
+.filter-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+  display: none;
+}
+
+.filter-count:not(:empty) { display: block; }
+
+/* ── FILTER PANEL ── */
+#filterPanel {
+  display: none;
+  margin-bottom: 10px;
+}
+
+#filterPanel.open { display: block; }
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.filter-chip:hover { color: var(--text); border-color: var(--muted); }
+.filter-chip.active { color: #000; border-color: transparent; }
+
+/* Physics tag colors */
+.chip--mechanics.active,        .ch-tag--mechanics        { background: #1e3a5f; color: #7eb8f7; border-color: #2a5080; }
+.chip--e_m.active,              .ch-tag--e_m              { background: #1e3a50; color: #60c8f0; border-color: #2a6080; }
+.chip--modern.active,           .ch-tag--modern           { background: #3a1e50; color: #c07af0; border-color: #6030a0; }
+.chip--thermo.active,           .ch-tag--thermo           { background: #502010; color: #f09050; border-color: #903020; }
+.chip--optics.active,           .ch-tag--optics           { background: #1e4030; color: #50d090; border-color: #207050; }
+.chip--waves.active,            .ch-tag--waves            { background: #3a3010; color: #d0b040; border-color: #706020; }
+
+/* Chemistry tag colors */
+.chip--oc.active,               .ch-tag--oc               { background: #402010; color: #f08040; border-color: #804020; }
+.chip--ic.active,               .ch-tag--ic               { background: #103030; color: #40c0b0; border-color: #207060; }
+.chip--pc.active,               .ch-tag--pc               { background: #102040; color: #4090e0; border-color: #205090; }
+
+/* Maths tag colors */
+.chip--algebra.active,          .ch-tag--algebra          { background: #201040; color: #9060d0; border-color: #503080; }
+.chip--calculus.active,         .ch-tag--calculus         { background: #102010; color: #40b060; border-color: #205030; }
+.chip--coord.active,            .ch-tag--coord            { background: #103040; color: #40b0c0; border-color: #206070; }
+.chip--trigo.active,            .ch-tag--trigo            { background: #401020; color: #d05080; border-color: #802040; }
+.chip--vectors___3d.active,     .ch-tag--vectors___3d     { background: #302010; color: #c08040; border-color: #604020; }
+.chip--logic.active,            .ch-tag--logic            { background: #203010; color: #80b040; border-color: #406020; }
+
+/* ── CHAPTER TAG ── */
+.ch-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  border-radius: var(--r);
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* light mode tag overrides */
+body.light .ch-tag--mechanics        { background: #dceeff; color: #1a4a8a; border-color: #b0d0f0; }
+body.light .ch-tag--e_m              { background: #dcf4ff; color: #0a5070; border-color: #a0d8f0; }
+body.light .ch-tag--modern           { background: #f0dcff; color: #5010a0; border-color: #d0a0f0; }
+body.light .ch-tag--thermo           { background: #fff0dc; color: #8a3000; border-color: #f0c080; }
+body.light .ch-tag--optics           { background: #dcfff0; color: #0a6030; border-color: #a0e0c0; }
+body.light .ch-tag--waves            { background: #fffadc; color: #6a5000; border-color: #e0d080; }
+body.light .ch-tag--oc               { background: #fff0e0; color: #8a3800; border-color: #f0c090; }
+body.light .ch-tag--ic               { background: #e0fff8; color: #006050; border-color: #90e0d0; }
+body.light .ch-tag--pc               { background: #e0f0ff; color: #003880; border-color: #90c0f0; }
+body.light .ch-tag--algebra          { background: #f0e8ff; color: #400090; border-color: #c0a0f0; }
+body.light .ch-tag--calculus         { background: #e8ffe8; color: #105010; border-color: #90d090; }
+body.light .ch-tag--coord            { background: #e0f8ff; color: #005060; border-color: #80d0e0; }
+body.light .ch-tag--trigo            { background: #ffe8f0; color: #800030; border-color: #f0a0c0; }
+body.light .ch-tag--vectors___3d     { background: #fff8e8; color: #604000; border-color: #e0c080; }
+body.light .ch-tag--logic            { background: #f0ffe0; color: #304000; border-color: #b0d870; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 0 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: color 0.2s, border-color 0.2s;
+  text-transform: uppercase;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab.active[data-subject="physics"]   { color: var(--phy);    border-color: var(--phy); }
+.tab.active[data-subject="chemistry"] { color: var(--chem);   border-color: var(--chem); }
+.tab.active[data-subject="maths"]     { color: var(--math);   border-color: var(--math); }
+.tab.active[data-subject="stats"]     { color: var(--accent); border-color: var(--accent); }
+
+/* ── MAIN ── */
+main {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── CHAPTER CARD ── */
+.chapter {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.chapter.open { border-color: #3a3a44; }
+
+.chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chapter-header:active { background: var(--surface2); }
+
+.ch-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  min-width: 24px;
+}
+
+.ch-header-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ch-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.ch-arrow {
+  color: var(--muted);
+  font-size: 0.75rem;
+  transition: transform 0.25s ease;
+}
+
+.chapter.open .ch-arrow { transform: rotate(90deg); }
+
+/* subject color accent */
+.chapter[data-subject="physics"]   .ch-name { color: #d0e8ff; }
+.chapter[data-subject="chemistry"] .ch-name { color: #ffd8b0; }
+.chapter[data-subject="maths"]     .ch-name { color: #e8d8ff; }
+
+/* ── CHAPTER PROGRESS BAR ── */
+.ch-progress-bar {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+  display: flex;
+}
+
+.ch-progress-seg {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.seg--theory    { background: #f0c040; }
+.seg--practiced { background: #40c070; }
+.seg--adv       { background: var(--accent); }
+
+/* ── CHAPTER BADGE ── */
+.ch-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 2px 7px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── TOPICS LIST ── */
+.chapter-body {
+  display: none;
+  padding: 0 16px 14px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.chapter.open .chapter-body { display: block; }
+
+.topic-list {
+  list-style: none;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── TOPIC ITEM ── */
+.topic-item > .topic-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: var(--r);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+
+.topic-item > .topic-header:hover,
+.topic-item > .topic-header:active { background: var(--surface2); }
+
+.topic-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+[data-subject="physics"]   .topic-dot { background: var(--phy); }
+[data-subject="chemistry"] .topic-dot { background: var(--chem); }
+[data-subject="maths"]     .topic-dot { background: var(--math); }
+
+.topic-name {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.topic-arrow {
+  font-size: 0.65rem;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+
+.topic-item.open > .topic-header .topic-arrow { transform: rotate(90deg); }
+
+/* leaf topics — no expand */
+.topic-item.leaf > .topic-header { cursor: default; }
+.topic-item.leaf > .topic-header:hover { background: none; }
+
+/* ── STATUS BUTTON ── */
+.status-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  margin-right: 2px;
+}
+
+.status-btn:active { transform: scale(0.88); }
+
+.status--theory    { background: #f0c040 !important; }
+.status--practiced { background: #40c070 !important; }
+.status--adv       { background: var(--accent) !important; }
+
+.status-btn.status--theory    { background: #2a2000 !important; color: #f0c040; border-color: #f0c040; }
+.status-btn.status--practiced { background: #002a10 !important; color: #40c070; border-color: #40c070; }
+.status-btn.status--adv       { background: #1a2200 !important; color: var(--accent); border-color: var(--accent); }
+
+body.light .status-btn.status--theory    { background: #fff8dc !important; color: #8a6000; border-color: #f0c040; }
+body.light .status-btn.status--practiced { background: #dcfff0 !important; color: #006030; border-color: #40c070; }
+body.light .status-btn.status--adv       { background: #f0ffd0 !important; color: #3a6000; border-color: #5a9e08; }
+
+/* ── SUBTOPICS ── */
+.subtopic-list {
+  display: none;
+  list-style: none;
+  margin: 4px 0 4px 20px;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  gap: 2px;
+  flex-direction: column;
+}
+
+.topic-item.open > .subtopic-list { display: flex; }
+
+.subtopic-list li {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 4px 6px;
+  border-radius: var(--r);
+  line-height: 1.4;
+  transition: color 0.15s;
+}
+
+.subtopic-list li:hover { color: var(--text); }
+
+/* ── SEARCH HIGHLIGHT ── */
+.highlight {
+  background: var(--accent);
+  color: #000;
+  border-radius: 1px;
+  padding: 0 1px;
+}
+
+/* ── NO RESULTS ── */
+.no-results {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.875rem;
+  padding: 40px 0;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── THEME TOGGLE ── */
+#themeToggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+#themeToggle:hover { color: var(--text); border-color: var(--accent); }
+
+/* ── FILTER SECTION LABEL ── */
+.filter-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+/* ── PROGRESS FILTER CHIP ── */
+.pf-chip.pf-active {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── STATS VIEW ── */
+.stats-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Paani card */
+.paani-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paani-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.paani-level {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.paani-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.paani-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.paani-bar {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.paani-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 1px;
+  transition: width 0.6s ease;
+}
+
+/* Subject stat cards */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-subject {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.stat-card[data-subject="physics"]   .stat-subject { color: var(--phy); }
+.stat-card[data-subject="chemistry"] .stat-subject { color: var(--chem); }
+.stat-card[data-subject="maths"]     .stat-subject { color: var(--math); }
+
+.stat-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.stat-bar {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+  display: flex;
+}
+
+.stat-seg {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.stat-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.leg {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+}
+
+.leg--theory    { color: #f0c040; }
+.leg--practiced { color: #40c070; }
+.leg--adv       { color: var(--accent); }
+.leg--blank     { color: var(--muted); }
+.leg--total     { color: var(--muted); }
+
+.stat-legend-key {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+
+.stat-legend-key .leg { font-size: 0.68rem; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 1px; }
