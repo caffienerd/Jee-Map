@@ -6,7 +6,7 @@
 const Auth = (() => {
   const USERS = {
     rishit:  '8728f128-be6f-47b7-bb39-e11dc622e937',
-    vedanta: '1e062b7d-f8d8-4552-93e8-624a22023dd5',
+    vedanta: '63a3a690-9e02-4359-9276-1e63f69c33a7',
   };
 
   // Ordered list for the picker UI
