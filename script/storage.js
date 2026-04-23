@@ -2,6 +2,9 @@
 // localStorage is used ONLY as a write-through cache for speed.
 // Supabase is the single source of truth.
 //
+// Cache keys are namespaced by userId so Rishit and Vedanta's data
+// can coexist in localStorage without colliding.
+//
 // PROGRESS STATUS VALUES:
 //   null        → untouched
 //   'theory'    → theory read / understood
@@ -35,44 +38,45 @@ const Storage = (() => {
   }
 
   // ── Theme ──────────────────────────────────────────────────────────────
-  // Theme lives only in localStorage (no need to sync to DB).
   function getTheme()      { return _get('theme', 'dark'); }
   function setTheme(theme) { _set('theme', theme); }
 
-  // ── Progress cache ─────────────────────────────────────────────────────
-  // These are ONLY called by Sync — not by main.js directly.
+  // ── Active viewer persistence ──────────────────────────────────────────
+  // Stores which userId was last being viewed, so the app restores it on reload.
+  function getLastViewedUserId()         { return _get('lastViewedUserId', null); }
+  function setLastViewedUserId(userId)   { _set('lastViewedUserId', userId); }
 
-  function _progressKey(subject, chIdx, topicIdx) {
-    return `progress:${subject}:${chIdx}:${topicIdx}`;
+  // ── Progress cache ─────────────────────────────────────────────────────
+  // Namespaced by userId so both users' caches live side-by-side.
+
+  function _progressKey(userId, subject, chIdx, topicIdx) {
+    return `progress:${userId}:${subject}:${chIdx}:${topicIdx}`;
   }
 
-  // Write one entry into the local cache
-  function cacheSet(subject, chIdx, topicIdx, status) {
+  function cacheSet(userId, subject, chIdx, topicIdx, status) {
     if (status === null) {
-      _remove(_progressKey(subject, chIdx, topicIdx));
+      _remove(_progressKey(userId, subject, chIdx, topicIdx));
     } else {
-      _set(_progressKey(subject, chIdx, topicIdx), status);
+      _set(_progressKey(userId, subject, chIdx, topicIdx), status);
     }
   }
 
-  // Read one entry from the local cache
-  function cacheGet(subject, chIdx, topicIdx) {
-    return _get(_progressKey(subject, chIdx, topicIdx), null);
+  function cacheGet(userId, subject, chIdx, topicIdx) {
+    return _get(_progressKey(userId, subject, chIdx, topicIdx), null);
   }
 
-  // Bulk-load from Supabase rows into cache (called on init)
-  function cacheLoadAll(rows) {
-    // Clear old progress cache first so stale entries don't linger
-    clearProgressCache();
+  // Bulk-load from Supabase rows into cache for a specific user
+  function cacheLoadAll(userId, rows) {
+    clearProgressCache(userId);
     rows.forEach(row => {
-      cacheSet(row.subject, row.chapter_idx, row.topic_idx, row.status);
+      cacheSet(userId, row.subject, row.chapter_idx, row.topic_idx, row.status);
     });
   }
 
-  // Get all cached progress for a subject → { "chIdx:topicIdx": status }
-  function cacheGetSubject(subject) {
+  // Get all cached progress for a user+subject → { "chIdx:topicIdx": status }
+  function cacheGetSubject(userId, subject) {
     const result = {};
-    const prefix = NS + `progress:${subject}:`;
+    const prefix = NS + `progress:${userId}:${subject}:`;
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && k.startsWith(prefix)) {
@@ -83,16 +87,21 @@ const Storage = (() => {
     return result;
   }
 
-  function clearProgressCache() {
+  // Clear progress cache for a specific user (or all if userId omitted)
+  function clearProgressCache(userId = null) {
+    const prefix = userId
+      ? NS + `progress:${userId}:`
+      : NS + 'progress:';
     Object.keys(localStorage)
-      .filter(k => k.startsWith(NS + 'progress:'))
+      .filter(k => k.startsWith(prefix))
       .forEach(k => localStorage.removeItem(k));
   }
 
-  // ── Theme ──────────────────────────────────────────────────────────────
   return {
     // Theme
     getTheme, setTheme,
+    // Viewer persistence
+    getLastViewedUserId, setLastViewedUserId,
     // Cache (used by Sync and main.js reads)
     cacheSet, cacheGet, cacheLoadAll, cacheGetSubject, clearProgressCache,
   };

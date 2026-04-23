@@ -1,9 +1,19 @@
 // ── AUTH.JS ───────────────────────────────────────────────────────────────
 // Handles GitHub OAuth.
-// Only one UUID (yours) is the owner — everyone else is read-only.
+// Rishit and Vedanta can each edit their own progress.
+// Everyone else (logged in or not) is read-only.
 
 const Auth = (() => {
-  const OWNER_ID = '8728f128-be6f-47b7-bb39-e11dc622e937';
+  const USERS = {
+    rishit:  '8728f128-be6f-47b7-bb39-e11dc622e937',
+    vedanta: '1e062b7d-f8d8-4552-93e8-624a22023dd5',
+  };
+
+  // Ordered list for the picker UI
+  const USER_LIST = [
+    { id: USERS.rishit,  name: 'Rishit',  key: 'rishit'  },
+    { id: USERS.vedanta, name: 'Vedanta', key: 'vedanta' },
+  ];
 
   let _session          = null;
   let _onChangeCallback = null;
@@ -27,10 +37,24 @@ const Auth = (() => {
   function getUser()    { return _session?.user ?? null; }
   function isLoggedIn() { return !!_session; }
 
-  // True only for your GitHub account — gates all writes
-  function isOwner() {
-    return _session?.user?.id === OWNER_ID;
+  // Returns the current logged-in user's UUID if they're Rishit or Vedanta,
+  // otherwise null. This is the "editor" check — only these two can write.
+  function getEditorId() {
+    const uid = _session?.user?.id;
+    if (!uid) return null;
+    if (uid === USERS.rishit)  return USERS.rishit;
+    if (uid === USERS.vedanta) return USERS.vedanta;
+    return null;
   }
+
+  // True if the logged-in user can edit (is Rishit or Vedanta)
+  function isEditor() { return getEditorId() !== null; }
+
+  // True if the logged-in user can edit the given userId's data
+  function canEdit(userId) { return getEditorId() === userId; }
+
+  // Returns [{ id, name, key }, ...] for the picker
+  function getUserList() { return USER_LIST; }
 
   // ── Actions ─────────────────────────────────────────────────────────────
   async function loginWithGitHub() {
@@ -70,5 +94,9 @@ const Auth = (() => {
     }
   }
 
-  return { init, getSession, getUser, isLoggedIn, isOwner, loginWithGitHub, logout, onChange };
+  return {
+    init, getSession, getUser, isLoggedIn,
+    isEditor, canEdit, getEditorId, getUserList,
+    loginWithGitHub, logout, onChange,
+  };
 })();

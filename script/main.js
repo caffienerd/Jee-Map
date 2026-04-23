@@ -29,6 +29,121 @@ let progressFilter  = null;
 let filterOpen      = false;
 let activeView      = 'stats';
 
+// The user whose data is currently being displayed.
+// Defaults to last-viewed (localStorage) or Rishit if no history.
+let viewingUserId   = null;
+
+// ── VIEWER INIT ───────────────────────────────────────────────────────────
+function initViewingUser() {
+  const users     = Auth.getUserList();
+  const lastViewed = Storage.getLastViewedUserId();
+
+  // If we have a valid last-viewed id, use it
+  if (lastViewed && users.some(u => u.id === lastViewed)) {
+    viewingUserId = lastViewed;
+    return;
+  }
+
+  // If the logged-in user is an editor, default to their own profile
+  const editorId = Auth.getEditorId();
+  if (editorId) {
+    viewingUserId = editorId;
+    return;
+  }
+
+  // Otherwise default to first user (Rishit)
+  viewingUserId = users[0].id;
+}
+
+function setViewingUser(userId) {
+  viewingUserId = userId;
+  Storage.setLastViewedUserId(userId);
+  // Invalidate test scores cache when switching users
+  _testScoresCache = null;
+}
+
+// ── VIEWER PICKER (shown to non-editors / visitors) ───────────────────────
+// Returns HTML for the picker modal overlay.
+function buildPickerHTML() {
+  const users = Auth.getUserList();
+
+  const cards = users.map(u => {
+    // Compute overall % for this user from cache
+    const subjects = ['physics', 'chemistry', 'maths'];
+    let total = 0, touched = 0;
+    subjects.forEach(subj => {
+      const chapters = DATA[subj];
+      chapters.forEach((ch, chIdx) => {
+        ch.topics.forEach((_, ti) => {
+          total++;
+          if (Storage.cacheGet(u.id, subj, chIdx, ti) !== null) touched++;
+        });
+      });
+    });
+    const pct = total > 0 ? Math.round(touched / total * 100) : 0;
+
+    return `
+      <button class="picker-card" data-user-id="${u.id}">
+        <div class="picker-name">${u.name}</div>
+        <div class="picker-pct">${pct}<span class="picker-pct-sym">%</span></div>
+        <div class="picker-sub">overall progress</div>
+      </button>`;
+  }).join('');
+
+  return `
+    <div class="picker-overlay" id="pickerOverlay">
+      <div class="picker-modal">
+        <div class="picker-title">whose progress?</div>
+        ${cards}
+      </div>
+    </div>`;
+}
+
+function showPicker() {
+  // Remove existing if any
+  document.getElementById('pickerOverlay')?.remove();
+  document.body.insertAdjacentHTML('beforeend', buildPickerHTML());
+
+  document.querySelectorAll('.picker-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setViewingUser(btn.dataset.userId);
+      document.getElementById('pickerOverlay')?.remove();
+      renderView();
+      updateViewerBadge();
+    });
+  });
+}
+
+// ── VIEWER BADGE (shown in header when viewing someone's profile) ──────────
+function updateViewerBadge() {
+  let badge = document.getElementById('viewerBadge');
+  const users = Auth.getUserList();
+  const user  = users.find(u => u.id === viewingUserId);
+  if (!user) return;
+
+  const editorId  = Auth.getEditorId();
+  const isOwnView = editorId === viewingUserId;
+
+  if (!badge) {
+    // Inject badge after authBtn
+    const authWrap = document.getElementById('authBtn');
+    const el = document.createElement('div');
+    el.id = 'viewerBadge';
+    el.className = 'viewer-badge';
+    authWrap.insertAdjacentElement('afterend', el);
+    badge = el;
+  }
+
+  // Editors see a "switch" option; visitors see "change"
+  const canSwitch = Auth.isEditor();
+  badge.innerHTML = `
+    <span class="viewer-badge-label">viewing</span>
+    <span class="viewer-badge-name">${user.name}</span>
+    <button class="viewer-badge-switch" id="viewerSwitch">${canSwitch ? 'switch' : 'change'}</button>`;
+
+  document.getElementById('viewerSwitch')?.addEventListener('click', showPicker);
+}
+
 // ── RENDER ROUTER ─────────────────────────────────────────────────────────
 function renderView() {
   if (activeView === 'stats') {
@@ -59,8 +174,7 @@ function render() {
     return;
   }
 
-  // ── Reads come from localStorage cache (populated by Sync.pull on init)
-  const progress = Storage.cacheGetSubject(activeSubject);
+  const progress = Storage.cacheGetSubject(viewingUserId, activeSubject);
   main.innerHTML = filtered.map((ch, ci) => {
     const origIdx = DATA[activeSubject].indexOf(ch);
     return buildChapter(ch, ci, origIdx, q, progress);
@@ -75,7 +189,7 @@ function applyProgressFilter(chapters, subject, pf) {
 
     if (pf === 'fully-done') {
       return topics.every((_, ti) =>
-        Storage.cacheGet(subject, origIdx, ti) === 'adv'
+        Storage.cacheGet(viewingUserId, subject, origIdx, ti) === 'adv'
       );
     }
 
@@ -84,7 +198,7 @@ function applyProgressFilter(chapters, subject, pf) {
     const needIdx     = statusOrder.indexOf(needStatus);
 
     return topics.some((_, ti) => {
-      const s    = Storage.cacheGet(subject, origIdx, ti);
+      const s    = Storage.cacheGet(viewingUserId, subject, origIdx, ti);
       const sIdx = statusOrder.indexOf(s);
       return sIdx < needIdx;
     });
@@ -192,27 +306,21 @@ function tagSlug(tag) {
 
 // ── STATS VIEW ────────────────────────────────────────────────────────────
 
-// In-memory cache for test scores (loaded from Supabase on init / refresh)
-let _testScoresCache = null; // { mains: [...], adv: [...] }
+// Per-user test scores cache: { [userId]: { mains: [], adv: [] } }
+let _testScoresCache = null;
 
 async function loadTestScores() {
   if (_testScoresCache) return _testScoresCache;
-  const rows = await Sync.fetchScores(); // fetches all subjects, public read
-  // Map Supabase rows → { mains: [], adv: [] } shape
+  const rows = await Sync.fetchScores(viewingUserId);
   const result = { mains: [], adv: [] };
   rows.forEach(r => {
     const entry = { date: r.taken_at.slice(0, 10), score: r.score, id: r.id };
-    if (r.subject === 'full') {
-      // Store full tests under whichever tab makes sense — use 'adv' bucket
+    if (r.subject === 'full' || r.subject === 'adv') {
       result.adv.push(entry);
     } else if (r.subject === 'mains') {
       result.mains.push(entry);
-    } else if (r.subject === 'adv') {
-      result.adv.push(entry);
     }
-    // subject-specific scores (physics/chemistry/maths) aren't shown in tabs yet
   });
-  // Sort ascending by date
   result.mains.sort((a, b) => a.date.localeCompare(b.date));
   result.adv.sort((a, b) => a.date.localeCompare(b.date));
   _testScoresCache = result;
@@ -234,7 +342,7 @@ async function renderStats() {
 
   const subjectCards = subjects.map(subj => {
     const chapters = DATA[subj];
-    const progress = Storage.cacheGetSubject(subj); // read from cache
+    const progress = Storage.cacheGetSubject(viewingUserId, subj);
 
     let th = 0, prac = 0, adv = 0, total = 0;
     chapters.forEach((ch, chIdx) => {
@@ -262,7 +370,6 @@ async function renderStats() {
     ? Math.round((totalAdv + totalPrac + totalTheory) / totalTopics * 100)
     : 0;
 
-  // ── Load test scores from Supabase (cached after first fetch)
   const testScores     = await loadTestScores();
   const activeTestType = window._activeTestType || 'mains';
   const entriesOpen    = window._testEntriesOpen !== false;
@@ -277,8 +384,12 @@ async function renderStats() {
   });
   const hasFilter = !!(dateFrom || dateTo);
 
-  // Only show add/delete controls if you're the owner
-  const isOwner = Auth.isOwner();
+  // Only show add/delete controls if logged-in user is viewing their OWN profile
+  const canEdit = Auth.canEdit(viewingUserId);
+
+  // Get the viewing user's display name for context
+  const users = Auth.getUserList();
+  const viewingUser = users.find(u => u.id === viewingUserId);
 
   main.innerHTML = `
     <div class="stats-wrap">
@@ -353,7 +464,7 @@ async function renderStats() {
           ${buildScoreGraph(filteredEntries, activeTestType)}
         </div>
 
-        ${isOwner ? `
+        ${canEdit ? `
         <div class="stats-test-add">
           <input type="date"   id="scoreDate" class="score-input score-date" />
           <input type="number" id="scoreVal"  class="score-input score-val" placeholder="score" min="0" max="${activeTestType === 'mains' ? 300 : 360}" />
@@ -372,7 +483,7 @@ async function renderStats() {
               <div class="score-entry">
                 <span class="score-entry-date">${formatDate(e.date)}</span>
                 <span class="score-entry-val">${e.score}</span>
-                ${isOwner ? `<button class="score-del-btn" data-id="${e.id}">×</button>` : ''}
+                ${canEdit ? `<button class="score-del-btn" data-id="${e.id}">×</button>` : ''}
               </div>`).join('')}
           </div>` : ''}
         </div>` : ''}
@@ -415,8 +526,8 @@ async function renderStats() {
     renderStats();
   });
 
-  // ── add score (owner only)
-  if (isOwner) {
+  // ── add score (own profile only)
+  if (canEdit) {
     const addBtn = main.querySelector('#scoreAddBtn');
     if (addBtn) {
       addBtn.addEventListener('click', async () => {
@@ -432,19 +543,19 @@ async function renderStats() {
         addBtn.disabled = true;
         addBtn.textContent = '…';
 
-        await Sync.saveScore(type, score, maxScore, date);
+        await Sync.saveScore(viewingUserId, type, score, maxScore, date);
         invalidateTestScoresCache();
         await renderStats();
       });
     }
   }
 
-  // ── delete score (owner only — uses Supabase row id)
-  if (isOwner) {
+  // ── delete score (own profile only)
+  if (canEdit) {
     main.querySelectorAll('.score-del-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
-        await Sync.deleteScore(id);
+        await Sync.deleteScore(viewingUserId, id);
         invalidateTestScoresCache();
         await renderStats();
       });
@@ -642,12 +753,12 @@ function attachEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
 
-      // Visitors can't cycle — silent no-op
-      if (!Auth.isOwner()) return;
+      // Only allow edit if viewing your own profile
+      if (!Auth.canEdit(viewingUserId)) return;
 
-      const chOrig   = parseInt(btn.dataset.chOrig);
-      const topicIdx = parseInt(btn.dataset.topicIdx);
-      const newStatus = Sync.cycleAndSync(activeSubject, chOrig, topicIdx);
+      const chOrig    = parseInt(btn.dataset.chOrig);
+      const topicIdx  = parseInt(btn.dataset.topicIdx);
+      const newStatus = Sync.cycleAndSync(viewingUserId, activeSubject, chOrig, topicIdx);
 
       const cfg      = STATUS_CONFIG[newStatus] || STATUS_CONFIG[null];
       const topicItem = btn.closest('.topic-item');
@@ -671,7 +782,7 @@ function updateChapterBar(origIdx) {
   let th = 0, prac = 0, adv = 0;
 
   ch.topics.forEach((_, ti) => {
-    const s = Storage.cacheGet(activeSubject, origIdx, ti);
+    const s = Storage.cacheGet(viewingUserId, activeSubject, origIdx, ti);
     if (s === 'theory')    th++;
     if (s === 'practiced') prac++;
     if (s === 'adv')       adv++;
@@ -748,15 +859,28 @@ themeBtn.addEventListener('click', () => {
 document.querySelector('.tab[data-subject="stats"]').classList.add('active');
 renderFilterPanel();
 
-// Pull from Supabase for EVERYONE (logged in or not) — public read policy
-// This is what makes visitors see your progress.
 Auth.init().then(async () => {
-  await Sync.pull();   // populate localStorage cache from Supabase
-  renderStats();       // now render with real data
+  initViewingUser();           // determine who to show based on localStorage / auth
+  await Sync.pullAll();        // fetch BOTH users' data from Supabase
+  updateViewerBadge();         // show "viewing Rishit [switch]" in header
+  renderStats();               // render with real data
+
+  // If logged-in user is an editor viewing someone else's profile, auto-switch to their own
+  const editorId = Auth.getEditorId();
+  if (editorId && viewingUserId !== editorId) {
+    // Don't force-switch — respect localStorage preference
+    // They can manually switch via the badge
+  }
 });
 
-// On login/logout: re-pull and re-render (in case owner just logged in)
 Auth.onChange(async session => {
-  await Sync.pull();
+  // On login/logout: re-pull and re-render
+  // If they just logged in as an editor, switch to their own profile
+  const editorId = Auth.getEditorId();
+  if (editorId) {
+    setViewingUser(editorId);
+  }
+  await Sync.pullAll();
+  updateViewerBadge();
   renderView();
 });

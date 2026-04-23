@@ -2,51 +2,49 @@
 // Supabase = single source of truth.
 // localStorage = write-through cache for instant UI (no latency on reads).
 //
-// Strategy:
-//   - On app init (logged in OR visitor): pull ALL progress from Supabase
-//     → write into localStorage cache → main.js reads from cache (fast)
-//   - On owner write: update cache immediately + async upsert to Supabase
-//   - Visitors: cache is populated from Supabase on load, no writes ever
-//
-// YOUR UUID (only account that can write):
-const OWNER_ID = '8728f128-be6f-47b7-bb39-e11dc622e937';
+// All functions now take a userId param so they work for both Rishit and Vedanta.
+// Writes are gated by Auth.canEdit(userId) — you can only write your own rows.
 
 const Sync = (() => {
 
-  // ── Pull all progress from Supabase → local cache ───────────────────────
-  // Called once on app init. Works for visitors too (public read policy).
-  async function pull() {
+  // ── Pull one user's progress from Supabase → local cache ────────────────
+  async function pull(userId) {
     const { data, error } = await window.DB
       .from('progress')
       .select('subject, chapter_idx, topic_idx, status')
-      .eq('user_id', OWNER_ID); // always fetch YOUR progress specifically
+      .eq('user_id', userId);
 
     if (error) {
-      console.warn('[Sync] pull failed:', error.message);
+      console.warn(`[Sync] pull failed for ${userId}:`, error.message);
       return;
     }
 
-    Storage.cacheLoadAll(data);
-    console.log(`[Sync] pulled ${data.length} rows`);
+    Storage.cacheLoadAll(userId, data);
+    console.log(`[Sync] pulled ${data.length} rows for ${userId}`);
   }
 
-  // ── Push one progress change to Supabase (owner only) ───────────────────
-  async function _push(subject, chIdx, topicIdx, status) {
-    if (!Auth.isLoggedIn()) return;
-    if (Auth.getUser()?.id !== OWNER_ID) return; // extra safety
+  // Pull all known users at once (called on init)
+  async function pullAll() {
+    const users = Auth.getUserList();
+    await Promise.all(users.map(u => pull(u.id)));
+  }
+
+  // ── Push one progress change to Supabase ────────────────────────────────
+  async function _push(userId, subject, chIdx, topicIdx, status) {
+    if (!Auth.canEdit(userId)) return; // safety: can only write your own rows
 
     if (status === null) {
       const { error } = await window.DB
         .from('progress')
         .delete()
-        .match({ user_id: OWNER_ID, subject, chapter_idx: chIdx, topic_idx: topicIdx });
+        .match({ user_id: userId, subject, chapter_idx: chIdx, topic_idx: topicIdx });
 
       if (error) console.warn('[Sync] delete failed:', error.message);
     } else {
       const { error } = await window.DB
         .from('progress')
         .upsert({
-          user_id:     OWNER_ID,
+          user_id:     userId,
           subject,
           chapter_idx: chIdx,
           topic_idx:   topicIdx,
@@ -61,32 +59,32 @@ const Sync = (() => {
   }
 
   // ── Cycle progress (cache immediately + async push) ──────────────────────
-  // Called by main.js on topic click. Only works if you're the owner.
-  function cycleAndSync(subject, chIdx, topicIdx) {
-    if (!Auth.isOwner()) return Storage.cacheGet(subject, chIdx, topicIdx); // no-op for visitors
+  // viewingUserId: whose progress is currently being shown
+  function cycleAndSync(viewingUserId, subject, chIdx, topicIdx) {
+    // Only allow edit if the logged-in user owns this profile
+    if (!Auth.canEdit(viewingUserId)) {
+      return Storage.cacheGet(viewingUserId, subject, chIdx, topicIdx); // no-op
+    }
 
-    const CYCLE = [null, 'theory', 'practiced', 'adv'];
-    const current = Storage.cacheGet(subject, chIdx, topicIdx);
+    const CYCLE   = [null, 'theory', 'practiced', 'adv'];
+    const current = Storage.cacheGet(viewingUserId, subject, chIdx, topicIdx);
     const next    = CYCLE[(CYCLE.indexOf(current) + 1) % CYCLE.length];
 
-    // Update cache instantly (UI feels snappy)
-    Storage.cacheSet(subject, chIdx, topicIdx, next);
-    // Push to Supabase in background
-    _push(subject, chIdx, topicIdx, next);
+    Storage.cacheSet(viewingUserId, subject, chIdx, topicIdx, next);
+    _push(viewingUserId, subject, chIdx, topicIdx, next);
 
     return next;
   }
 
   // ── Test Scores ──────────────────────────────────────────────────────────
 
-  // Save a test score (owner only)
-  async function saveScore(subject, score, maxScore, date = null) {
-    if (!Auth.isOwner()) return null;
+  async function saveScore(viewingUserId, subject, score, maxScore, date = null) {
+    if (!Auth.canEdit(viewingUserId)) return null;
 
     const { data, error } = await window.DB
       .from('test_scores')
       .insert({
-        user_id:   OWNER_ID,
+        user_id:   viewingUserId,
         subject,
         score,
         max_score: maxScore,
@@ -103,9 +101,8 @@ const Sync = (() => {
     return data;
   }
 
-  // Delete a test score by its Supabase row id (owner only)
-  async function deleteScore(id) {
-    if (!Auth.isOwner()) return;
+  async function deleteScore(viewingUserId, id) {
+    if (!Auth.canEdit(viewingUserId)) return;
 
     const { error } = await window.DB
       .from('test_scores')
@@ -115,12 +112,11 @@ const Sync = (() => {
     if (error) console.warn('[Sync] deleteScore failed:', error.message);
   }
 
-  // Fetch all test scores (anyone can call this)
-  async function fetchScores(subject = null) {
+  async function fetchScores(userId, subject = null) {
     let query = window.DB
       .from('test_scores')
       .select('id, subject, score, max_score, taken_at')
-      .eq('user_id', OWNER_ID)
+      .eq('user_id', userId)
       .order('taken_at', { ascending: false });
 
     if (subject) query = query.eq('subject', subject);
@@ -134,5 +130,5 @@ const Sync = (() => {
     return data;
   }
 
-  return { pull, cycleAndSync, saveScore, deleteScore, fetchScores };
+  return { pull, pullAll, cycleAndSync, saveScore, deleteScore, fetchScores };
 })();
