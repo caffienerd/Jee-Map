@@ -1,0 +1,162 @@
+/* ── AUTH ── */
+.auth-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.auth-login {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.auth-login:hover { color: var(--accent); border-color: var(--accent); }
+
+.auth-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+.auth-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+.auth-logout {
+  background: none;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.auth-logout:hover { color: var(--text); }
+
+/* ── VIEWER BADGE ── */
+/* Shows in header: "viewing Rishit [switch]" */
+.viewer-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.viewer-badge-label {
+  opacity: 0.6;
+}
+
+.viewer-badge-name {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.viewer-badge-switch {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.viewer-badge-switch:hover { background: var(--border); }
+
+/* ── PICKER OVERLAY ── */
+/* Full-screen modal shown when clicking "switch" / "change" */
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+.picker-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 260px;
+}
+
+.picker-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.picker-card {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.picker-card:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.picker-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.picker-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.picker-pct-sym {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.picker-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 2px;
+}

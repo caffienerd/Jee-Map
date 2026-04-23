@@ -1,0 +1,50 @@
+/* ── CHAPTER TAG BASE ── */
+.ch-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  border-radius: var(--r);
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── PHYSICS TAG COLORS ── */
+.chip--mechanics.active,        .ch-tag--mechanics        { background: #1e3a5f; color: #7eb8f7; border-color: #2a5080; }
+.chip--e_m.active,              .ch-tag--e_m              { background: #1e3a50; color: #60c8f0; border-color: #2a6080; }
+.chip--modern.active,           .ch-tag--modern           { background: #3a1e50; color: #c07af0; border-color: #6030a0; }
+.chip--thermo.active,           .ch-tag--thermo           { background: #502010; color: #f09050; border-color: #903020; }
+.chip--optics.active,           .ch-tag--optics           { background: #1e4030; color: #50d090; border-color: #207050; }
+.chip--waves.active,            .ch-tag--waves            { background: #3a3010; color: #d0b040; border-color: #706020; }
+
+/* ── CHEMISTRY TAG COLORS ── */
+.chip--oc.active,               .ch-tag--oc               { background: #402010; color: #f08040; border-color: #804020; }
+.chip--ic.active,               .ch-tag--ic               { background: #103030; color: #40c0b0; border-color: #207060; }
+.chip--pc.active,               .ch-tag--pc               { background: #102040; color: #4090e0; border-color: #205090; }
+
+/* ── MATHS TAG COLORS ── */
+.chip--algebra.active,          .ch-tag--algebra          { background: #201040; color: #9060d0; border-color: #503080; }
+.chip--calculus.active,         .ch-tag--calculus         { background: #102010; color: #40b060; border-color: #205030; }
+.chip--coord.active,            .ch-tag--coord            { background: #103040; color: #40b0c0; border-color: #206070; }
+.chip--trigo.active,            .ch-tag--trigo            { background: #401020; color: #d05080; border-color: #802040; }
+.chip--vectors___3d.active,     .ch-tag--vectors___3d     { background: #302010; color: #c08040; border-color: #604020; }
+.chip--logic.active,            .ch-tag--logic            { background: #203010; color: #80b040; border-color: #406020; }
+
+/* ── LIGHT MODE OVERRIDES ── */
+body.light .ch-tag--mechanics        { background: #dceeff; color: #1a4a8a; border-color: #b0d0f0; }
+body.light .ch-tag--e_m              { background: #dcf4ff; color: #0a5070; border-color: #a0d8f0; }
+body.light .ch-tag--modern           { background: #f0dcff; color: #5010a0; border-color: #d0a0f0; }
+body.light .ch-tag--thermo           { background: #fff0dc; color: #8a3000; border-color: #f0c080; }
+body.light .ch-tag--optics           { background: #dcfff0; color: #0a6030; border-color: #a0e0c0; }
+body.light .ch-tag--waves            { background: #fffadc; color: #6a5000; border-color: #e0d080; }
+body.light .ch-tag--oc               { background: #fff0e0; color: #8a3800; border-color: #f0c090; }
+body.light .ch-tag--ic               { background: #e0fff8; color: #006050; border-color: #90e0d0; }
+body.light .ch-tag--pc               { background: #e0f0ff; color: #003880; border-color: #90c0f0; }
+body.light .ch-tag--algebra          { background: #f0e8ff; color: #400090; border-color: #c0a0f0; }
+body.light .ch-tag--calculus         { background: #e8ffe8; color: #105010; border-color: #90d090; }
+body.light .ch-tag--coord            { background: #e0f8ff; color: #005060; border-color: #80d0e0; }
+body.light .ch-tag--trigo            { background: #ffe8f0; color: #800030; border-color: #f0a0c0; }
+body.light .ch-tag--vectors___3d     { background: #fff8e8; color: #604000; border-color: #e0c080; }
+body.light .ch-tag--logic            { background: #f0ffe0; color: #304000; border-color: #b0d870; }

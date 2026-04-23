@@ -1,0 +1,207 @@
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.logo-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.logo-accent { color: var(--accent); }
+
+.tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-top: 3px;
+}
+
+/* ── SEARCH ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#searchInput {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 9px 38px 9px 14px;
+  font-size: 0.875rem;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#searchInput::placeholder { color: var(--muted); }
+#searchInput:focus { border-color: var(--accent); }
+
+.search-icon {
+  position: absolute;
+  right: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+/* ── FILTER BUTTON ── */
+#filterBtn {
+  flex-shrink: 0;
+  position: relative;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+#filterBtn:hover { color: var(--text); }
+#filterBtn.active { color: var(--accent); border-color: var(--accent); }
+
+.filter-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+  display: none;
+}
+
+.filter-count:not(:empty) { display: block; }
+
+/* ── FILTER PANEL ── */
+#filterPanel {
+  display: none;
+  margin-bottom: 10px;
+}
+
+#filterPanel.open { display: block; }
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.filter-chip:hover { color: var(--text); border-color: var(--muted); }
+.filter-chip.active { color: #000; border-color: transparent; }
+
+/* ── FILTER SECTION LABEL ── */
+.filter-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+/* ── PROGRESS FILTER CHIP ── */
+.pf-chip.pf-active {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 0 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: color 0.2s, border-color 0.2s;
+  text-transform: uppercase;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab.active[data-subject="physics"]   { color: var(--phy);    border-color: var(--phy); }
+.tab.active[data-subject="chemistry"] { color: var(--chem);   border-color: var(--chem); }
+.tab.active[data-subject="maths"]     { color: var(--math);   border-color: var(--math); }
+.tab.active[data-subject="stats"]     { color: var(--accent); border-color: var(--accent); }
+
+/* ── THEME TOGGLE ── */
+#themeToggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+#themeToggle:hover { color: var(--text); border-color: var(--accent); }

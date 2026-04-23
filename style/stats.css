@@ -1,0 +1,419 @@
+/* ── STATS VIEW ── */
+.stats-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+/* ── LEG (legend) BASE ── */
+.leg {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+}
+
+.leg--theory    { color: #f0c040; }
+.leg--practiced { color: #40c070; }
+.leg--adv       { color: var(--accent); }
+.leg--blank     { color: var(--muted); }
+.leg--total     { color: var(--muted); }
+
+/* ── OVERVIEW CARD ── */
+.stats-overview-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-overview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stats-overview-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stats-ov-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stats-ov-pct {
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.stats-ov-pct-sym {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.stats-ov-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.stats-ring-wrap {
+  flex-shrink: 0;
+}
+
+.stats-ring {
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.stats-ov-bar-row { width: 100%; }
+
+.stats-ov-bar {
+  height: 5px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+}
+
+.stats-ov-seg {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.stats-ov-legend {
+  display: flex;
+  gap: 12px;
+}
+
+/* ── SUBJECT MINI CARDS ── */
+.stats-subjects-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stats-subj-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stats-subj-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-subj-pct {
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.stats-subj-bar {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+  display: flex;
+}
+
+.stats-subj-seg {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.stats-subj-nums {
+  display: flex;
+  gap: 6px;
+}
+
+.stats-subj-nums .leg {
+  font-size: 0.62rem;
+}
+
+/* ── TEST SCORES CARD ── */
+.stats-test-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stats-test-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stats-test-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.stats-test-tab {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 3px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.stats-test-tab.active {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.stats-test-graph-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.score-graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.score-graph-empty {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0 16px;
+}
+
+.stats-test-add {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.score-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 6px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.score-input:focus { border-color: var(--accent); }
+.score-input::placeholder { color: var(--muted); }
+
+/* date picker dark theme */
+.score-date {
+  flex: 1.4;
+  color-scheme: dark;
+}
+body.light .score-date { color-scheme: light; }
+
+.score-val {
+  flex: 1;
+  min-width: 0;
+}
+
+.score-add-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--r);
+  padding: 6px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.score-add-btn:active { opacity: 0.8; }
+
+.stats-test-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: var(--surface2);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+.score-entry-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  flex: 1;
+}
+
+.score-entry-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.score-del-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.score-del-btn:hover { color: #e05050; }
+
+/* ── DATE FILTER ROW ── */
+.score-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-filter-date {
+  flex: 1;
+  min-width: 0;
+}
+
+.score-filter-sep {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.score-filter-clear {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 5px 9px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.score-filter-clear:hover { color: #e05050; border-color: #e05050; }
+
+/* ── ENTRIES COLLAPSE ── */
+.score-entries-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-entries-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 6px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.score-entries-toggle:hover { color: var(--text); border-color: var(--muted); }
+
+.score-entries-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.2s;
+}
+.score-entries-arrow.open { transform: rotate(90deg); }
+
+/* ── BACKWARDS COMPAT (old stat- classes) ── */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-subject { font-weight: 600; font-size: 0.9rem; }
+.stat-card[data-subject="physics"]   .stat-subject { color: var(--phy); }
+.stat-card[data-subject="chemistry"] .stat-subject { color: var(--chem); }
+.stat-card[data-subject="maths"]     .stat-subject { color: var(--math); }
+
+.stat-pct { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+
+.stat-bar {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+  display: flex;
+}
+
+.stat-seg { height: 100%; transition: width 0.4s ease; }
+
+.stat-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.stat-legend-key {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+.stat-legend-key .leg { font-size: 0.68rem; }

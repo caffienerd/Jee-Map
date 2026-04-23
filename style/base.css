@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0d0d0f;
+  --surface:    #141416;
+  --surface2:   #1c1c20;
+  --border:     #2a2a30;
+  --accent:     #c8f135;
+  --accent-dim: #a0c020;
+  --text:       #e8e8ec;
+  --muted:      #6b6b78;
+  --phy:        #5b9cf6;
+  --chem:       #f97316;
+  --math:       #a78bfa;
+  --header-h:   148px;
+  --r:          3px;   /* global radius — sharp but not zero */
+}
+
+body.light {
+  --bg:         #f5f5f0;
+  --surface:    #ffffff;
+  --surface2:   #ececec;
+  --border:     #ddddd8;
+  --accent:     #5a9e08;
+  --accent-dim: #4a8a06;
+  --text:       #1a1a1e;
+  --muted:      #888890;
+  --phy:        #1a6fd4;
+  --chem:       #d45c00;
+  --math:       #6d3fd4;
+}
+
+/* light mode chapter name colors */
+body.light .chapter[data-subject="physics"]   .ch-name { color: #1a4a8a; }
+body.light .chapter[data-subject="chemistry"] .ch-name { color: #8a3a00; }
+body.light .chapter[data-subject="maths"]     .ch-name { color: #4a2a8a; }
+
+body.light .chapter.open { border-color: #c8c8c0; }
+
+html { font-size: 15px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* ── MAIN ── */
+main {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 1px; }
