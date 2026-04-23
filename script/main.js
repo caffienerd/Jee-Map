@@ -137,7 +137,6 @@ function updateViewerBadge() {
   // Editors see a "switch" option; visitors see "change"
   const canSwitch = Auth.isEditor();
   badge.innerHTML = `
-    <span class="viewer-badge-label">viewing</span>
     <span class="viewer-badge-name">${user.name}</span>
     <button class="viewer-badge-switch" id="viewerSwitch">${canSwitch ? 'switch' : 'change'}</button>`;
 
@@ -844,7 +843,7 @@ const themeBtn = document.getElementById('themeToggle');
 function applyTheme(theme) {
   const isLight = theme === 'light';
   document.body.classList.toggle('light', isLight);
-  themeBtn.textContent = isLight ? '☾ dark' : '☀ light';
+  themeBtn.textContent = isLight ? '☾' : '☀';
 }
 
 applyTheme(Storage.getTheme());

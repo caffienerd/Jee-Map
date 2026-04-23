@@ -196,12 +196,15 @@ header {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 4px 10px;
-  font-size: 0.78rem;
+  width: 34px;
+  height: 34px;
+  font-size: 0.95rem;
   font-family: 'DM Mono', monospace;
   color: var(--muted);
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #themeToggle:hover { color: var(--text); border-color: var(--accent); }
