@@ -72,7 +72,7 @@
 /* shared segment colors (used in chapter bars, stats bars, overview bar) */
 .seg--theory    { background: #f0c040; }
 .seg--practiced { background: #40c070; }
-.seg--adv       { background: var(--accent); }
+.seg--adv       { background: #38bdf8; }
 
 /* ── CHAPTER BADGE ── */
 .ch-badge {
@@ -175,15 +175,15 @@
 
 .status--theory    { background: #f0c040 !important; }
 .status--practiced { background: #40c070 !important; }
-.status--adv       { background: var(--accent) !important; }
+.status--adv       { background: #38bdf8 !important; }
 
 .status-btn.status--theory    { background: #2a2000 !important; color: #f0c040; border-color: #f0c040; }
 .status-btn.status--practiced { background: #002a10 !important; color: #40c070; border-color: #40c070; }
-.status-btn.status--adv       { background: #1a2200 !important; color: var(--accent); border-color: var(--accent); }
+.status-btn.status--adv       { background: #001a2a !important; color: #38bdf8; border-color: #38bdf8; }
 
 body.light .status-btn.status--theory    { background: #fff8dc !important; color: #8a6000; border-color: #f0c040; }
 body.light .status-btn.status--practiced { background: #dcfff0 !important; color: #006030; border-color: #40c070; }
-body.light .status-btn.status--adv       { background: #f0ffd0 !important; color: #3a6000; border-color: #5a9e08; }
+body.light .status-btn.status--adv       { background: #dcf6ff !important; color: #005a80; border-color: #38bdf8; }
 
 /* ── SUBTOPICS ── */
 .subtopic-list {

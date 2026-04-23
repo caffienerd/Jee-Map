@@ -14,7 +14,7 @@
   --muted:      #6b6b78;
   --phy:        #5b9cf6;
   --chem:       #f97316;
-  --math:       #a78bfa;
+  --math:       #f472b6;
   --header-h:   148px;
   --r:          3px;   /* global radius — sharp but not zero */
 }
@@ -30,7 +30,7 @@ body.light {
   --muted:      #888890;
   --phy:        #1a6fd4;
   --chem:       #d45c00;
-  --math:       #6d3fd4;
+  --math:       #c0186e;
 }
 
 /* light mode chapter name colors */
