@@ -2,7 +2,9 @@
 // Depends on (loaded before this in index.html):
 //   tags.js          → window.TAGS
 //   subjects/*.js    → window.PHY_DATA, window.CHEM_DATA, window.MATH_DATA
-//   storage.js       → Storage
+//   storage.js       → Storage  (localStorage cache only)
+//   sync.js          → Sync     (Supabase source of truth)
+//   auth.js          → Auth
 
 // ── DATA MAP ──────────────────────────────────────────────────────────────
 const DATA = {
@@ -22,10 +24,10 @@ const STATUS_CONFIG = {
 // ── STATE ─────────────────────────────────────────────────────────────────
 let activeSubject   = 'physics';
 let searchQuery     = '';
-let activeFilters   = new Set();   // tag filters
-let progressFilter  = null;        // null | 'theory-pending' | 'practiced-pending' | 'adv-pending' | 'fully-done'
+let activeFilters   = new Set();
+let progressFilter  = null;
 let filterOpen      = false;
-let activeView      = 'chapters';  // 'chapters' | 'stats'
+let activeView      = 'stats';
 
 // ── RENDER ROUTER ─────────────────────────────────────────────────────────
 function renderView() {
@@ -42,12 +44,10 @@ function render() {
   let chapters = DATA[activeSubject];
   const q = searchQuery.toLowerCase().trim();
 
-  // Tag filter
   if (activeFilters.size > 0) {
     chapters = chapters.filter(ch => activeFilters.has(ch.tag));
   }
 
-  // Progress filter
   if (progressFilter) {
     chapters = applyProgressFilter(chapters, activeSubject, progressFilter);
   }
@@ -59,9 +59,9 @@ function render() {
     return;
   }
 
-  const progress = Storage.getSubjectProgress(activeSubject);
+  // ── Reads come from localStorage cache (populated by Sync.pull on init)
+  const progress = Storage.cacheGetSubject(activeSubject);
   main.innerHTML = filtered.map((ch, ci) => {
-    // find original index for storage key consistency
     const origIdx = DATA[activeSubject].indexOf(ch);
     return buildChapter(ch, ci, origIdx, q, progress);
   }).join('');
@@ -69,24 +69,23 @@ function render() {
 }
 
 function applyProgressFilter(chapters, subject, pf) {
-  return chapters.filter((ch, chIdx) => {
+  return chapters.filter((ch) => {
     const origIdx = DATA[subject].indexOf(ch);
     const topics  = ch.topics;
 
     if (pf === 'fully-done') {
       return topics.every((_, ti) =>
-        Storage.getProgress(subject, origIdx, ti) === 'adv'
+        Storage.cacheGet(subject, origIdx, ti) === 'adv'
       );
     }
 
-    const needStatus = pf.replace('-pending', ''); // 'theory' | 'practiced' | 'adv'
+    const needStatus  = pf.replace('-pending', '');
     const statusOrder = ['theory', 'practiced', 'adv'];
-    const needIdx = statusOrder.indexOf(needStatus);
+    const needIdx     = statusOrder.indexOf(needStatus);
 
     return topics.some((_, ti) => {
-      const s = Storage.getProgress(subject, origIdx, ti);
+      const s    = Storage.cacheGet(subject, origIdx, ti);
       const sIdx = statusOrder.indexOf(s);
-      // pending = hasn't reached this level yet
       return sIdx < needIdx;
     });
   });
@@ -103,12 +102,10 @@ function buildChapter(ch, ci, origIdx, q, progress) {
     ? `<span class="ch-tag ch-tag--${tagSlug(ch.tag)}">${ch.tag}</span>`
     : '';
 
-  // Chapter progress summary
   const total    = ch.topics.length;
   const doneAdv  = ch.topics.filter((_, ti) => progress[`${origIdx}:${ti}`] === 'adv').length;
   const donePrac = ch.topics.filter((_, ti) => progress[`${origIdx}:${ti}`] === 'practiced').length;
   const doneTh   = ch.topics.filter((_, ti) => progress[`${origIdx}:${ti}`] === 'theory').length;
-  const untouched = total - doneAdv - donePrac - doneTh;
 
   const progressBarHTML = buildProgressBar(total, doneTh, donePrac, doneAdv);
 
@@ -194,17 +191,50 @@ function tagSlug(tag) {
 }
 
 // ── STATS VIEW ────────────────────────────────────────────────────────────
-function renderStats() {
+
+// In-memory cache for test scores (loaded from Supabase on init / refresh)
+let _testScoresCache = null; // { mains: [...], adv: [...] }
+
+async function loadTestScores() {
+  if (_testScoresCache) return _testScoresCache;
+  const rows = await Sync.fetchScores(); // fetches all subjects, public read
+  // Map Supabase rows → { mains: [], adv: [] } shape
+  const result = { mains: [], adv: [] };
+  rows.forEach(r => {
+    const entry = { date: r.taken_at.slice(0, 10), score: r.score, id: r.id };
+    if (r.subject === 'full') {
+      // Store full tests under whichever tab makes sense — use 'adv' bucket
+      result.adv.push(entry);
+    } else if (r.subject === 'mains') {
+      result.mains.push(entry);
+    } else if (r.subject === 'adv') {
+      result.adv.push(entry);
+    }
+    // subject-specific scores (physics/chemistry/maths) aren't shown in tabs yet
+  });
+  // Sort ascending by date
+  result.mains.sort((a, b) => a.date.localeCompare(b.date));
+  result.adv.sort((a, b) => a.date.localeCompare(b.date));
+  _testScoresCache = result;
+  return result;
+}
+
+function invalidateTestScoresCache() {
+  _testScoresCache = null;
+}
+
+async function renderStats() {
   const main = document.getElementById('main');
 
-  const subjects = ['physics', 'chemistry', 'maths'];
-  const subjectNames = { physics: 'Physics', chemistry: 'Chemistry', maths: 'Maths' };
+  const subjects     = ['physics', 'chemistry', 'maths'];
+  const subjectNames  = { physics: 'Physics', chemistry: 'Chemistry', maths: 'Maths' };
+  const subjectColors = { physics: '#5b9cf6', chemistry: '#f97316', maths: '#a78bfa' };
 
   let totalTopics = 0, totalTheory = 0, totalPrac = 0, totalAdv = 0;
 
   const subjectCards = subjects.map(subj => {
     const chapters = DATA[subj];
-    const progress = Storage.getSubjectProgress(subj);
+    const progress = Storage.cacheGetSubject(subj); // read from cache
 
     let th = 0, prac = 0, adv = 0, total = 0;
     chapters.forEach((ch, chIdx) => {
@@ -225,66 +255,303 @@ function renderStats() {
     const untouched = total - th - prac - adv;
     const pct = total > 0 ? Math.round((adv + prac + th) / total * 100) : 0;
 
-    return { subj, name: subjectNames[subj], total, th, prac, adv, untouched, pct };
+    return { subj, name: subjectNames[subj], color: subjectColors[subj], total, th, prac, adv, untouched, pct };
   });
 
-  // Overall paani level
   const overallPct = totalTopics > 0
     ? Math.round((totalAdv + totalPrac + totalTheory) / totalTopics * 100)
     : 0;
 
-  const paaniLevel = getPaaniLevel(overallPct);
+  // ── Load test scores from Supabase (cached after first fetch)
+  const testScores     = await loadTestScores();
+  const activeTestType = window._activeTestType || 'mains';
+  const entriesOpen    = window._testEntriesOpen !== false;
+  const dateFrom       = window._testDateFrom || '';
+  const dateTo         = window._testDateTo   || '';
+
+  const allEntries = testScores[activeTestType] || [];
+  const filteredEntries = allEntries.filter(e => {
+    if (dateFrom && e.date < dateFrom) return false;
+    if (dateTo   && e.date > dateTo)   return false;
+    return true;
+  });
+  const hasFilter = !!(dateFrom || dateTo);
+
+  // Only show add/delete controls if you're the owner
+  const isOwner = Auth.isOwner();
 
   main.innerHTML = `
     <div class="stats-wrap">
-      <div class="paani-card">
-        <div class="paani-label">kitne paani mein ho?</div>
-        <div class="paani-level">${paaniLevel.hindi}</div>
-        <div class="paani-sub">${paaniLevel.sub}</div>
-        <div class="paani-pct">${overallPct}% touched</div>
-        <div class="paani-bar">
-          <div class="paani-fill" style="width:${overallPct}%"></div>
+
+      <!-- ── OVERVIEW CARD ── -->
+      <div class="stats-overview-card">
+        <div class="stats-overview-top">
+          <div class="stats-overview-left">
+            <div class="stats-ov-label">overall progress</div>
+            <div class="stats-ov-pct">${overallPct}<span class="stats-ov-pct-sym">%</span></div>
+            <div class="stats-ov-sub">${totalAdv + totalPrac + totalTheory} of ${totalTopics} topics touched</div>
+          </div>
+          <div class="stats-ring-wrap">
+            ${buildRingSVG(overallPct)}
+          </div>
+        </div>
+        <div class="stats-ov-bar-row">
+          <div class="stats-ov-bar">
+            <div class="stats-ov-seg seg--theory"    style="width:${(totalTheory / totalTopics * 100).toFixed(1)}%"></div>
+            <div class="stats-ov-seg seg--practiced" style="width:${(totalPrac   / totalTopics * 100).toFixed(1)}%"></div>
+            <div class="stats-ov-seg seg--adv"       style="width:${(totalAdv    / totalTopics * 100).toFixed(1)}%"></div>
+          </div>
+        </div>
+        <div class="stats-ov-legend">
+          <span class="leg leg--theory">T ${totalTheory}</span>
+          <span class="leg leg--practiced">P ${totalPrac}</span>
+          <span class="leg leg--adv">A ${totalAdv}</span>
+          <span class="leg leg--blank">· ${totalTopics - totalTheory - totalPrac - totalAdv}</span>
         </div>
       </div>
 
-      ${subjectCards.map(c => `
-        <div class="stat-card" data-subject="${c.subj}">
-          <div class="stat-card-top">
-            <span class="stat-subject">${c.name}</span>
-            <span class="stat-pct">${c.pct}%</span>
+      <!-- ── SUBJECT MINI CARDS ── -->
+      <div class="stats-subjects-row">
+        ${subjectCards.map(c => `
+          <div class="stats-subj-card" data-subject="${c.subj}">
+            <div class="stats-subj-name">${c.name}</div>
+            <div class="stats-subj-pct" style="color:${c.color}">${c.pct}%</div>
+            <div class="stats-subj-bar">
+              <div class="stats-subj-seg seg--theory"    style="width:${(c.th   / c.total * 100).toFixed(1)}%"></div>
+              <div class="stats-subj-seg seg--practiced" style="width:${(c.prac / c.total * 100).toFixed(1)}%"></div>
+              <div class="stats-subj-seg seg--adv"       style="width:${(c.adv  / c.total * 100).toFixed(1)}%"></div>
+            </div>
+            <div class="stats-subj-nums">
+              <span class="leg leg--theory">${c.th}</span>
+              <span class="leg leg--practiced">${c.prac}</span>
+              <span class="leg leg--adv">${c.adv}</span>
+              <span class="leg leg--blank">${c.untouched}</span>
+            </div>
           </div>
-          <div class="stat-bar">
-            <div class="stat-seg seg--theory"    style="width:${(c.th   / c.total * 100).toFixed(1)}%"></div>
-            <div class="stat-seg seg--practiced" style="width:${(c.prac / c.total * 100).toFixed(1)}%"></div>
-            <div class="stat-seg seg--adv"       style="width:${(c.adv  / c.total * 100).toFixed(1)}%"></div>
-          </div>
-          <div class="stat-legend">
-            <span class="leg leg--theory">T ${c.th}</span>
-            <span class="leg leg--practiced">P ${c.prac}</span>
-            <span class="leg leg--adv">A ${c.adv}</span>
-            <span class="leg leg--blank">· ${c.untouched}</span>
-            <span class="leg leg--total">/ ${c.total}</span>
+        `).join('')}
+      </div>
+
+      <!-- ── TEST SCORES ── -->
+      <div class="stats-test-card">
+        <div class="stats-test-header">
+          <span class="stats-test-title">test scores</span>
+          <div class="stats-test-tabs">
+            <button class="stats-test-tab ${activeTestType === 'mains' ? 'active' : ''}" data-type="mains">Mains</button>
+            <button class="stats-test-tab ${activeTestType === 'adv'   ? 'active' : ''}" data-type="adv">Advanced</button>
           </div>
         </div>
-      `).join('')}
 
-      <div class="stat-legend-key">
-        <span class="leg leg--theory">T = Theory</span>
-        <span class="leg leg--practiced">P = Practiced</span>
-        <span class="leg leg--adv">A = Advanced</span>
+        <!-- date filter row -->
+        <div class="score-filter-row">
+          <input type="date" id="filterFrom" class="score-input score-date score-filter-date" value="${dateFrom}" placeholder="from" />
+          <span class="score-filter-sep">→</span>
+          <input type="date" id="filterTo"   class="score-input score-date score-filter-date" value="${dateTo}"   placeholder="to" />
+          ${hasFilter ? `<button class="score-filter-clear" id="filterClear">✕ clear</button>` : ''}
+        </div>
+
+        <div class="stats-test-graph-wrap">
+          ${buildScoreGraph(filteredEntries, activeTestType)}
+        </div>
+
+        ${isOwner ? `
+        <div class="stats-test-add">
+          <input type="date"   id="scoreDate" class="score-input score-date" />
+          <input type="number" id="scoreVal"  class="score-input score-val" placeholder="score" min="0" max="${activeTestType === 'mains' ? 300 : 360}" />
+          <button class="score-add-btn" id="scoreAddBtn">+ add</button>
+        </div>` : ''}
+
+        ${allEntries.length > 0 ? `
+        <div class="score-entries-section">
+          <button class="score-entries-toggle" id="entriesToggle">
+            <span>${filteredEntries.length} entr${filteredEntries.length === 1 ? 'y' : 'ies'}${hasFilter ? ' (filtered)' : ''}</span>
+            <span class="score-entries-arrow ${entriesOpen ? 'open' : ''}">▶</span>
+          </button>
+          ${entriesOpen ? `
+          <div class="stats-test-recent">
+            ${filteredEntries.slice().reverse().map((e) => `
+              <div class="score-entry">
+                <span class="score-entry-date">${formatDate(e.date)}</span>
+                <span class="score-entry-val">${e.score}</span>
+                ${isOwner ? `<button class="score-del-btn" data-id="${e.id}">×</button>` : ''}
+              </div>`).join('')}
+          </div>` : ''}
+        </div>` : ''}
       </div>
+
     </div>`;
+
+  // ── test tab switching
+  main.querySelectorAll('.stats-test-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window._activeTestType = btn.dataset.type;
+      renderStats();
+    });
+  });
+
+  // ── date filter
+  const filterFrom = main.querySelector('#filterFrom');
+  const filterTo   = main.querySelector('#filterTo');
+  if (filterFrom) filterFrom.addEventListener('change', () => {
+    window._testDateFrom = filterFrom.value;
+    renderStats();
+  });
+  if (filterTo) filterTo.addEventListener('change', () => {
+    window._testDateTo = filterTo.value;
+    renderStats();
+  });
+
+  // ── clear date filter
+  const filterClear = main.querySelector('#filterClear');
+  if (filterClear) filterClear.addEventListener('click', () => {
+    window._testDateFrom = '';
+    window._testDateTo   = '';
+    renderStats();
+  });
+
+  // ── collapse toggle
+  const entriesToggle = main.querySelector('#entriesToggle');
+  if (entriesToggle) entriesToggle.addEventListener('click', () => {
+    window._testEntriesOpen = !entriesOpen;
+    renderStats();
+  });
+
+  // ── add score (owner only)
+  if (isOwner) {
+    const addBtn = main.querySelector('#scoreAddBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', async () => {
+        const dateEl  = main.querySelector('#scoreDate');
+        const scoreEl = main.querySelector('#scoreVal');
+        const date    = dateEl.value;
+        const score   = parseFloat(scoreEl.value);
+        if (!date || isNaN(score)) return;
+
+        const type    = window._activeTestType || 'mains';
+        const maxScore = type === 'mains' ? 300 : 360;
+
+        addBtn.disabled = true;
+        addBtn.textContent = '…';
+
+        await Sync.saveScore(type, score, maxScore, date);
+        invalidateTestScoresCache();
+        await renderStats();
+      });
+    }
+  }
+
+  // ── delete score (owner only — uses Supabase row id)
+  if (isOwner) {
+    main.querySelectorAll('.score-del-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        await Sync.deleteScore(id);
+        invalidateTestScoresCache();
+        await renderStats();
+      });
+    });
+  }
 }
 
-function getPaaniLevel(pct) {
-  if (pct === 0)   return { hindi: 'Standing at the shore',  sub: 'have not even stepped in yet' };
-  if (pct < 15)    return { hindi: 'Ankles in',              sub: 'just getting started' };
-  if (pct < 30)    return { hindi: 'Knees deep',             sub: 'moving, but slowly' };
-  if (pct < 50)    return { hindi: 'Waist deep',             sub: 'halfway there' };
-  if (pct < 70)    return { hindi: 'Chest deep',             sub: 'getting serious now' };
-  if (pct < 85)    return { hindi: 'Neck deep',              sub: 'almost done bhai' };
-  if (pct < 100)   return { hindi: 'Going under',            sub: 'last stretch, do not stop' };
-  return           { hindi: 'Crossed it 🔥',                 sub: 'IIT locked in' };
+function buildRingSVG(pct) {
+  const r = 28, cx = 36, cy = 36;
+  const circ  = 2 * Math.PI * r;
+  const filled = circ * pct / 100;
+  return `<svg class="stats-ring" viewBox="0 0 72 72" width="72" height="72">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="6"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="6"
+      stroke-dasharray="${filled} ${circ}" stroke-dashoffset="${circ * 0.25}"
+      stroke-linecap="round"/>
+  </svg>`;
+}
+
+function buildScoreGraph(entries, type) {
+  if (!entries || entries.length === 0) {
+    return `<div class="score-graph-empty">no scores yet — add your first test result</div>`;
+  }
+
+  const maxScore = type === 'adv' ? 360 : 300;
+  const W = 320, H = 110;
+  const PAD = { t: 10, r: 16, b: 28, l: 36 };
+  const gW = W - PAD.l - PAD.r;
+  const gH = H - PAD.t - PAD.b;
+
+  const scores = entries.map(e => e.score);
+  const minS = Math.min(...scores);
+  const maxS = Math.max(...scores);
+  const range = maxS - minS || 1;
+
+  const pts = entries.map((e, i) => {
+    const x = PAD.l + (entries.length === 1 ? gW / 2 : i / (entries.length - 1) * gW);
+    const y = PAD.t + gH - ((e.score - minS) / range * gH * 0.85 + gH * 0.075);
+    return { x, y, score: e.score, date: e.date };
+  });
+
+  let pathD = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i];
+    const cpx = (p0.x + p1.x) / 2;
+    pathD += ` C ${cpx},${p0.y} ${cpx},${p1.y} ${p1.x},${p1.y}`;
+  }
+
+  const fillD = pathD
+    + ` L ${pts[pts.length-1].x},${PAD.t + gH}`
+    + ` L ${pts[0].x},${PAD.t + gH} Z`;
+
+  const gridY = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    const val = Math.round(minS + range * (1 - f));
+    const y   = PAD.t + gH * f * 0.85 + gH * 0.075;
+    return { val, y };
+  });
+
+  const xLabels = entries.length <= 3
+    ? entries.map((e, i) => ({ i, label: formatDateShort(e.date) }))
+    : [
+        { i: 0, label: formatDateShort(entries[0].date) },
+        { i: Math.floor((entries.length - 1) / 2), label: formatDateShort(entries[Math.floor((entries.length - 1) / 2)].date) },
+        { i: entries.length - 1, label: formatDateShort(entries[entries.length - 1].date) },
+      ];
+
+  const latest      = pts[pts.length - 1];
+  const latestScore = entries[entries.length - 1].score;
+
+  return `
+    <svg class="score-graph-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="var(--accent)" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${gridY.map(g => `
+        <line x1="${PAD.l}" y1="${g.y}" x2="${W - PAD.r}" y2="${g.y}"
+          stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <text x="${PAD.l - 4}" y="${g.y + 3}" text-anchor="end"
+          font-family="'DM Mono',monospace" font-size="7" fill="var(--muted)">${g.val}</text>
+      `).join('')}
+      <path d="${fillD}" fill="url(#scoreGrad)"/>
+      <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>`).join('')}
+      <circle cx="${latest.x}" cy="${latest.y}" r="4" fill="var(--accent)"/>
+      <text x="${latest.x + 6}" y="${latest.y + 3}" font-family="'DM Mono',monospace" font-size="8" fill="var(--accent)">${latestScore}</text>
+      ${xLabels.map(xl => {
+        const x = PAD.l + (entries.length === 1 ? gW / 2 : xl.i / (entries.length - 1) * gW);
+        return `<text x="${x}" y="${H - 4}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="var(--muted)">${xl.label}</text>`;
+      }).join('')}
+    </svg>`;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d} ${months[parseInt(m) - 1]} ${y}`;
+}
+
+function formatDateShort(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d} ${months[parseInt(m) - 1]}`;
 }
 
 // ── FILTER PANEL ──────────────────────────────────────────────────────────
@@ -344,8 +611,8 @@ function updateFilterBtn() {
   const btn = document.getElementById('filterBtn');
   const hasActive = activeFilters.size > 0 || progressFilter !== null;
   btn.classList.toggle('active', hasActive || filterOpen);
-  const countEl = btn.querySelector('.filter-count');
-  const count = activeFilters.size + (progressFilter ? 1 : 0);
+  const countEl  = btn.querySelector('.filter-count');
+  const count    = activeFilters.size + (progressFilter ? 1 : 0);
   countEl.textContent = count > 0 ? count : '';
 }
 
@@ -357,7 +624,6 @@ function toggleFilterPanel() {
 
 // ── ATTACH EVENTS ─────────────────────────────────────────────────────────
 function attachEvents() {
-  // Chapter expand/collapse
   document.querySelectorAll('.chapter-header').forEach(h => {
     h.addEventListener('click', (e) => {
       if (e.target.closest('.status-btn')) return;
@@ -365,7 +631,6 @@ function attachEvents() {
     });
   });
 
-  // Topic expand/collapse (not on status btn)
   document.querySelectorAll('.topic-item:not(.leaf) .topic-header').forEach(h => {
     h.addEventListener('click', (e) => {
       if (e.target.closest('.status-btn')) return;
@@ -373,26 +638,25 @@ function attachEvents() {
     });
   });
 
-  // Status cycle buttons
   document.querySelectorAll('.status-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const chOrig  = parseInt(btn.dataset.chOrig);
+
+      // Visitors can't cycle — silent no-op
+      if (!Auth.isOwner()) return;
+
+      const chOrig   = parseInt(btn.dataset.chOrig);
       const topicIdx = parseInt(btn.dataset.topicIdx);
       const newStatus = Sync.cycleAndSync(activeSubject, chOrig, topicIdx);
 
-      // Update just this button + dot without full re-render
-      const cfg = STATUS_CONFIG[newStatus] || STATUS_CONFIG[null];
+      const cfg      = STATUS_CONFIG[newStatus] || STATUS_CONFIG[null];
       const topicItem = btn.closest('.topic-item');
-      const dot = topicItem.querySelector('.topic-dot');
+      const dot       = topicItem.querySelector('.topic-dot');
 
-      // Update dot class
       dot.className = `topic-dot ${cfg.cls}`;
-      // Update btn class + text
       btn.className = `status-btn ${cfg.cls}`;
       btn.textContent = newStatus ? cfg.label : '·';
 
-      // Update chapter progress bar
       updateChapterBar(chOrig);
     });
   });
@@ -402,12 +666,12 @@ function updateChapterBar(origIdx) {
   const chEl = document.querySelector(`.chapter[data-ch-orig="${origIdx}"]`);
   if (!chEl) return;
 
-  const ch      = DATA[activeSubject][origIdx];
-  const total   = ch.topics.length;
+  const ch    = DATA[activeSubject][origIdx];
+  const total = ch.topics.length;
   let th = 0, prac = 0, adv = 0;
 
   ch.topics.forEach((_, ti) => {
-    const s = Storage.getProgress(activeSubject, origIdx, ti);
+    const s = Storage.cacheGet(activeSubject, origIdx, ti);
     if (s === 'theory')    th++;
     if (s === 'practiced') prac++;
     if (s === 'adv')       adv++;
@@ -481,19 +745,18 @@ themeBtn.addEventListener('click', () => {
 });
 
 // ── INIT ──────────────────────────────────────────────────────────────────
+document.querySelector('.tab[data-subject="stats"]').classList.add('active');
 renderFilterPanel();
-render();
 
-// Auth: init session, pull from Supabase if logged in
-Auth.init().then(() => {
-  if (Auth.isLoggedIn()) {
-    Sync.pull().then(() => render());
-  }
+// Pull from Supabase for EVERYONE (logged in or not) — public read policy
+// This is what makes visitors see your progress.
+Auth.init().then(async () => {
+  await Sync.pull();   // populate localStorage cache from Supabase
+  renderStats();       // now render with real data
 });
 
-// On login: pull fresh data and re-render
-Auth.onChange(session => {
-  if (session) {
-    Sync.pull().then(() => render());
-  }
+// On login/logout: re-pull and re-render (in case owner just logged in)
+Auth.onChange(async session => {
+  await Sync.pull();
+  renderView();
 });

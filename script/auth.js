@@ -1,18 +1,18 @@
 // ── AUTH.JS ───────────────────────────────────────────────────────────────
-// Handles GitHub OAuth. Only one user (you) will ever log in.
-// Sis and anyone else sees progress read-only with no login needed.
+// Handles GitHub OAuth.
+// Only one UUID (yours) is the owner — everyone else is read-only.
 
 const Auth = (() => {
-  let _session = null;
+  const OWNER_ID = '8728f128-be6f-47b7-bb39-e11dc622e937';
+
+  let _session          = null;
   let _onChangeCallback = null;
 
   // ── Init ────────────────────────────────────────────────────────────────
   async function init() {
-    // Get existing session
     const { data } = await window.DB.auth.getSession();
     _session = data.session;
 
-    // Listen for auth state changes (login, logout, token refresh)
     window.DB.auth.onAuthStateChange((event, session) => {
       _session = session;
       _render();
@@ -23,17 +23,20 @@ const Auth = (() => {
   }
 
   // ── Getters ─────────────────────────────────────────────────────────────
-  function getSession()  { return _session; }
-  function getUser()     { return _session?.user ?? null; }
-  function isLoggedIn()  { return !!_session; }
+  function getSession() { return _session; }
+  function getUser()    { return _session?.user ?? null; }
+  function isLoggedIn() { return !!_session; }
+
+  // True only for your GitHub account — gates all writes
+  function isOwner() {
+    return _session?.user?.id === OWNER_ID;
+  }
 
   // ── Actions ─────────────────────────────────────────────────────────────
   async function loginWithGitHub() {
     await window.DB.auth.signInWithOAuth({
       provider: 'github',
-      options: {
-        redirectTo: window.location.href,
-      }
+      options: { redirectTo: window.location.href },
     });
   }
 
@@ -67,5 +70,5 @@ const Auth = (() => {
     }
   }
 
-  return { init, getSession, getUser, isLoggedIn, loginWithGitHub, logout, onChange };
+  return { init, getSession, getUser, isLoggedIn, isOwner, loginWithGitHub, logout, onChange };
 })();
