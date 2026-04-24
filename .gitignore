@@ -3,3 +3,4 @@ android/
 www/
 .idea/
 package-lock.json
+build-output
