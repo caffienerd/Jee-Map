@@ -33,6 +33,31 @@ let activeView      = 'stats';
 // Defaults to last-viewed (localStorage) or Rishit if no history.
 let viewingUserId   = null;
 
+
+// ── LOADERS ───────────────────────────────────────────────────────────────
+
+function hideInitialLoader() {
+  const el = document.getElementById('appLoader');
+  if (el) {
+    el.classList.add('hidden');
+    // Remove from DOM after transition so it doesn't block interaction
+    setTimeout(() => el.remove(), 400);
+  }
+}
+
+function showSwitchFlash(userName) {
+  const flash    = document.getElementById('switchFlash');
+  const nameEl   = document.getElementById('switchFlashName');
+  if (!flash || !nameEl) return;
+  nameEl.textContent = userName;
+  flash.classList.add('visible');
+}
+
+function hideSwitchFlash() {
+  const flash = document.getElementById('switchFlash');
+  if (flash) flash.classList.remove('visible');
+}
+
 // ── VIEWER INIT ───────────────────────────────────────────────────────────
 function initViewingUser() {
   const users     = Auth.getUserList();
@@ -106,10 +131,17 @@ function showPicker() {
 
   document.querySelectorAll('.picker-card').forEach(btn => {
     btn.addEventListener('click', () => {
-      setViewingUser(btn.dataset.userId);
+      const users  = Auth.getUserList();
+      const picked = users.find(u => u.id === btn.dataset.userId);
       document.getElementById('pickerOverlay')?.remove();
-      renderView();
+      showSwitchFlash(picked?.name || '');
+      setViewingUser(btn.dataset.userId);
       updateViewerBadge();
+      // Small delay so flash is visible before render work happens
+      setTimeout(() => {
+        renderView();
+        hideSwitchFlash();
+      }, 720);
     });
   });
 }
@@ -863,6 +895,7 @@ Auth.init().then(async () => {
   await Sync.pullAll();        // fetch BOTH users' data from Supabase
   updateViewerBadge();         // show "viewing Rishit [switch]" in header
   renderStats();               // render with real data
+  hideInitialLoader();         // remove the loading screen
 
   // If logged-in user is an editor viewing someone else's profile, auto-switch to their own
   const editorId = Auth.getEditorId();

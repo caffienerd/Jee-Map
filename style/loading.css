@@ -1,0 +1,100 @@
+/* ── INITIAL LOAD SCREEN ─────────────────────────────────────────────────
+   Full-screen, shown until Supabase pull completes.
+   ─────────────────────────────────────────────────────────────────────── */
+
+#appLoader {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+#appLoader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.loader-logo span { color: var(--accent); }
+
+.loader-bar-wrap {
+  width: 120px;
+  height: 2px;
+  background: var(--surface2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.loader-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 1px;
+  animation: loaderSweep 1.4s ease-in-out infinite;
+}
+
+@keyframes loaderSweep {
+  0%   { width: 0%;   margin-left: 0%; }
+  50%  { width: 60%;  margin-left: 20%; }
+  100% { width: 0%;   margin-left: 100%; }
+}
+
+.loader-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* ── PROFILE SWITCH FLASH ────────────────────────────────────────────────
+   Overlays just the <main> content area briefly when switching profiles.
+   ─────────────────────────────────────────────────────────────────────── */
+
+#switchFlash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+#switchFlash.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.switch-flash-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--text);
+}
+
+.switch-flash-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}

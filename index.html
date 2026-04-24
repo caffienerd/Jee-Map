@@ -27,8 +27,22 @@
   <link rel="stylesheet" href="style/chapters.css" />
   <link rel="stylesheet" href="style/stats.css" />
   <link rel="stylesheet" href="style/auth.css" />
+  <link rel="stylesheet" href="style/loading.css" />
 </head>
 <body>
+
+  <!-- ── INITIAL LOAD SCREEN ── -->
+  <div id="appLoader">
+    <div class="loader-logo">JEE<span>MAP</span></div>
+    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+    <div class="loader-sub">loading progress...</div>
+  </div>
+
+  <!-- ── PROFILE SWITCH FLASH ── -->
+  <div id="switchFlash">
+    <div class="switch-flash-name" id="switchFlashName"></div>
+    <div class="switch-flash-sub">loading profile...</div>
+  </div>
 
   <header>
     <div class="header-top">

@@ -200,14 +200,12 @@ body.light .status-btn.status--adv       { background: #dcf6ff !important; color
 
 .subtopic-list li {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text);
   padding: 4px 6px;
   border-radius: var(--r);
   line-height: 1.4;
-  transition: color 0.15s;
 }
 
-.subtopic-list li:hover { color: var(--text); }
 
 /* ── SEARCH HIGHLIGHT ── */
 .highlight {

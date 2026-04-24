@@ -14,6 +14,7 @@ const FILES = [
   './style/chapters.css',
   './style/stats.css',
   './style/auth.css',
+  './style/loading.css',
   './script/tags.js',
   './script/storage.js',
   './script/main.js',
@@ -26,7 +27,7 @@ const FILES = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(FILES))
-  );   k
+  );
   self.skipWaiting();
 });
 
