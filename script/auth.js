@@ -2,6 +2,24 @@
 // Handles GitHub OAuth.
 // Rishit and Vedanta can each edit their own progress.
 // Everyone else (logged in or not) is read-only.
+//
+// ANDROID OAUTH FLOW (final):
+//   1. User taps login → Capacitor Browser opens Chrome Custom Tab with the
+//      Supabase GitHub OAuth URL.
+//   2. User authenticates on GitHub.
+//   3. Supabase redirects to: jeemap://login#access_token=...&refresh_token=...
+//   4. Android sees jeemap:// scheme → intent filter in AndroidManifest
+//      matches → closes Chrome Tab → brings app to foreground.
+//   5. App.addListener('appUrlOpen') fires with the full jeemap:// URL.
+//   6. We parse the hash fragment and call DB.auth.setSession() directly
+//      inside the WebView — session is now live in the app.
+//
+// WHY NOT https://localhost: Chrome on Android can't connect to localhost,
+//   shows "Unable to connect".
+// WHY NOT GitHub Pages redirect: Chrome's localStorage is separate from the
+//   WebView's localStorage — session stored there is invisible to the app.
+// THIS WORKS because we never rely on shared storage — we extract the token
+//   from the URL and inject it directly into the WebView via setSession().
 
 const Auth = (() => {
   const USERS = {
@@ -9,7 +27,6 @@ const Auth = (() => {
     vedanta: '1e062b7d-f8d8-4552-93e8-624a22023dd5',
   };
 
-  // Ordered list for the picker UI
   const USER_LIST = [
     { id: USERS.rishit,  name: 'Rishit',  key: 'rishit'  },
     { id: USERS.vedanta, name: 'Vedanta', key: 'vedanta' },
@@ -29,7 +46,44 @@ const Auth = (() => {
       if (_onChangeCallback) _onChangeCallback(session);
     });
 
+    // Register the deep link listener once at init so it works even if the
+    // app was backgrounded (not killed) during the OAuth flow.
+    _registerDeepLinkListener();
+
     _render();
+  }
+
+  // ── Deep link handler ────────────────────────────────────────────────────
+  // Listens for jeemap://login#access_token=...&refresh_token=...
+  // This fires when Android hands the URL back to our app after the
+  // Chrome Custom Tab redirects to the jeemap:// scheme.
+  function _registerDeepLinkListener() {
+    const App = window.Capacitor?.Plugins?.App;
+    if (!App) return;
+
+    App.addListener('appUrlOpen', async ({ url }) => {
+      if (!url || !url.startsWith('jeemap://')) return;
+
+      // The token is in the hash fragment: jeemap://login#access_token=...
+      const hash = url.split('#')[1];
+      if (!hash) return;
+
+      const params        = new URLSearchParams(hash);
+      const access_token  = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+
+      if (!access_token || !refresh_token) {
+        console.warn('[Auth] Deep link missing tokens:', url);
+        return;
+      }
+
+      // Inject the session directly into the WebView's Supabase instance.
+      const { error } = await window.DB.auth.setSession({ access_token, refresh_token });
+      if (error) {
+        console.error('[Auth] setSession failed:', error.message);
+      }
+      // onAuthStateChange fires automatically after setSession → _render() called.
+    });
   }
 
   // ── Getters ─────────────────────────────────────────────────────────────
@@ -37,8 +91,6 @@ const Auth = (() => {
   function getUser()    { return _session?.user ?? null; }
   function isLoggedIn() { return !!_session; }
 
-  // Returns the current logged-in user's UUID if they're Rishit or Vedanta,
-  // otherwise null. This is the "editor" check — only these two can write.
   function getEditorId() {
     const uid = _session?.user?.id;
     if (!uid) return null;
@@ -47,21 +99,45 @@ const Auth = (() => {
     return null;
   }
 
-  // True if the logged-in user can edit (is Rishit or Vedanta)
   function isEditor() { return getEditorId() !== null; }
-
-  // True if the logged-in user can edit the given userId's data
   function canEdit(userId) { return getEditorId() === userId; }
-
-  // Returns [{ id, name, key }, ...] for the picker
   function getUserList() { return USER_LIST; }
 
   // ── Actions ─────────────────────────────────────────────────────────────
   async function loginWithGitHub() {
-    await window.DB.auth.signInWithOAuth({
+    const isNative = window.Capacitor?.isNativePlatform?.();
+
+    if (!isNative) {
+      // Web: normal redirect. Supabase handles everything via detectSessionFromUrl.
+      await window.DB.auth.signInWithOAuth({
+        provider: 'github',
+        options: { redirectTo: window.location.href },
+      });
+      return;
+    }
+
+    // ── Native Android flow ───────────────────────────────────────────────
+    const { data, error } = await window.DB.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: window.location.href },
+      options: {
+        redirectTo: 'jeemap://login',   // Android intent filter catches this
+        skipBrowserRedirect: true,       // give us the URL, don't navigate yet
+      },
     });
+
+    if (error) {
+      console.error('[Auth] Failed to get OAuth URL:', error.message);
+      return;
+    }
+
+    if (!data?.url) {
+      console.error('[Auth] Supabase returned no OAuth URL');
+      return;
+    }
+
+    // Open in Chrome Custom Tab. When Supabase redirects to jeemap://login,
+    // Chrome can't handle that scheme → Android takes over → fires appUrlOpen.
+    await window.Capacitor.Plugins.Browser.open({ url: data.url });
   }
 
   async function logout() {

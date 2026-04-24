@@ -1,0 +1,13 @@
+{
+  "appId": "com.caffienerd.jeemap",
+  "appName": "JEE Map",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "Browser": {
+      "presentationStyle": "fullscreen"
+    }
+  }
+}

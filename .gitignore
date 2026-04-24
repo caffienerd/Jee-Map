@@ -1,0 +1,5 @@
+node_modules/
+android/
+www/
+.idea/
+package-lock.json
