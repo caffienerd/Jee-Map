@@ -10,7 +10,7 @@ Live at **[caffienerd.github.io/Jee-Map](https://caffienerd.github.io/Jee-Map/)*
 
 - Browse the full JEE syllabus across Physics, Chemistry, and Maths — broken down into subjects → chapters → topics → subtopics
 - Tag chapters by category (Mechanics, E&M, OC, PC, Calculus, etc.) and filter by them
-- Track progress per topic with status markers — touch, partial, done
+- Track progress per topic with status markers — TPA system (Theory, Practiced, Advanced).
 - Log test scores separately for JEE Mains and Advanced with date ranges
 - See overall and per-subject progress stats at a glance
 
