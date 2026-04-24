@@ -1,11 +1,14 @@
-/* ── AUTH ── */
+/* ── AUTH WRAP ── */
 .auth-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
+/* ── LOGGED OUT: icon-only github button ── */
 .auth-login {
   display: flex;
   align-items: center;
@@ -15,55 +18,70 @@
   border-radius: var(--r);
   width: 34px;
   height: 34px;
+  flex-shrink: 0;
   color: var(--muted);
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
 }
 .auth-login:hover { color: var(--accent); border-color: var(--accent); }
 
+/* ── LOGGED IN: avatar + stacked name/signout ── */
 .auth-avatar {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--r);
   border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Stacks @name on top, sign out below */
+.auth-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .auth-name {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
 }
 
 .auth-logout {
   background: none;
   border: none;
   font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   color: var(--muted);
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 0;
+  text-align: left;
   transition: color 0.15s;
+  line-height: 1.2;
 }
 .auth-logout:hover { color: var(--text); }
 
 /* ── VIEWER BADGE ── */
-/* Shows in header: "viewing Rishit [switch]" */
+/* Rishit [switch] — sits inline in header-top */
 .viewer-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  margin-left: 4px;
-}
-
-.viewer-badge-label {
-  opacity: 0.6;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .viewer-badge-name {
-  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
   font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .viewer-badge-switch {
@@ -71,16 +89,17 @@
   border: 1px solid var(--border);
   border-radius: 4px;
   color: var(--accent);
-  font-size: 11px;
+  font-size: 0.6rem;
   font-family: 'DM Mono', monospace;
-  padding: 2px 7px;
+  padding: 2px 6px;
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 .viewer-badge-switch:hover { background: var(--border); }
 
 /* ── PICKER OVERLAY ── */
-/* Full-screen modal shown when clicking "switch" / "change" */
 .picker-overlay {
   position: fixed;
   inset: 0;
@@ -127,11 +146,7 @@
   align-items: center;
   gap: 4px;
 }
-
-.picker-card:hover {
-  border-color: var(--accent);
-  background: var(--surface);
-}
+.picker-card:hover { border-color: var(--accent); background: var(--surface); }
 
 .picker-name {
   font-size: 16px;
@@ -147,10 +162,7 @@
   line-height: 1.1;
 }
 
-.picker-pct-sym {
-  font-size: 16px;
-  font-weight: 600;
-}
+.picker-pct-sym { font-size: 16px; font-weight: 600; }
 
 .picker-sub {
   font-family: 'DM Mono', monospace;

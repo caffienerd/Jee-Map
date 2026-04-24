@@ -81,8 +81,10 @@ const Auth = (() => {
       const name   = _session.user?.user_metadata?.user_name || 'you';
       el.innerHTML = `
         <img class="auth-avatar" src="${avatar}" alt="${name}" />
-        <span class="auth-name">@${name}</span>
-        <button class="auth-logout" id="logoutBtn">sign out</button>`;
+        <div class="auth-info">
+          <span class="auth-name">@${name}</span>
+          <button class="auth-logout" id="logoutBtn">sign out</button>
+        </div>`;
       document.getElementById('logoutBtn')?.addEventListener('click', logout);
     } else {
       el.innerHTML = `

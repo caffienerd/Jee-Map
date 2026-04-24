@@ -11,8 +11,9 @@ header {
 .header-top {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
+  overflow: hidden;   /* prevent horizontal blowout */
 }
 
 .logo-group {
@@ -21,6 +22,7 @@ header {
   gap: 0;
   line-height: 1;
   align-items: center;
+  flex-shrink: 0;   /* never shrink the logo */
 }
 
 .logo {
