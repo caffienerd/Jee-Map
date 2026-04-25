@@ -130,5 +130,84 @@ const Sync = (() => {
     return data;
   }
 
-  return { pull, pullAll, cycleAndSync, saveScore, deleteScore, fetchScores };
+  // ── Notes ────────────────────────────────────────────────────────────────
+
+  async function fetchNotes(userId) {
+    const { data, error } = await window.DB
+      .from('notes')
+      .select('id, title, body, priority, subject, created_at, updated_at')
+      .eq('user_id', userId)
+      .order('priority', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('[Sync] fetchNotes failed:', error.message);
+      return [];
+    }
+
+    return data;
+  }
+
+  // saveNote handles both INSERT (id = null) and UPDATE (id = existing uuid).
+  async function saveNote(viewingUserId, { id, title, body, priority, subject }) {
+    if (!Auth.canEdit(viewingUserId)) return null;
+
+    if (id) {
+      // UPDATE
+      const { data, error } = await window.DB
+        .from('notes')
+        .update({
+          title,
+          body,
+          priority,
+          subject:    subject || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('[Sync] saveNote update failed:', error.message);
+        return null;
+      }
+      return data;
+    } else {
+      // INSERT
+      const { data, error } = await window.DB
+        .from('notes')
+        .insert({
+          user_id:  viewingUserId,
+          title,
+          body,
+          priority,
+          subject:  subject || null,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('[Sync] saveNote insert failed:', error.message);
+        return null;
+      }
+      return data;
+    }
+  }
+
+  async function deleteNote(viewingUserId, id) {
+    if (!Auth.canEdit(viewingUserId)) return;
+
+    const { error } = await window.DB
+      .from('notes')
+      .delete()
+      .eq('id', id);
+
+    if (error) console.warn('[Sync] deleteNote failed:', error.message);
+  }
+
+  return {
+    pull, pullAll, cycleAndSync,
+    saveScore, deleteScore, fetchScores,
+    fetchNotes, saveNote, deleteNote,
+  };
 })();

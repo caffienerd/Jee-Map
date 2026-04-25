@@ -1,0 +1,896 @@
+/* ── NOTES.CSS ────────────────────────────────────────────────────────────
+   Matches the dark/monospace aesthetic of JEEMap exactly.
+   Uses the same CSS variables as base.css (--bg, --surface, --surface2,
+   --accent, --text, --muted, --border) so theme toggling works for free.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* ── Priority accent palette ─────────────────────────────────────────── */
+:root {
+  --pri1: #f97316;          /* orange  — highest */
+  --pri1-dim: rgba(249,115,22,.12);
+  --pri2: #eab308;          /* amber */
+  --pri2-dim: rgba(234,179,8,.10);
+  --pri3: #84cc16;          /* lime */
+  --pri3-dim: rgba(132,204,22,.10);
+  --pri4: #22d3ee;          /* cyan */
+  --pri4-dim: rgba(34,211,238,.09);
+  --pri5: #a78bfa;          /* violet */
+  --pri5-dim: rgba(167,139,250,.09);
+
+  --subj-physics:   #5b9cf6;
+  --subj-chemistry: #f97316;
+  --subj-maths:     #a78bfa;
+  --subj-general:   #6ee7b7;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   LOADING
+   ═══════════════════════════════════════════════════════════ */
+.notes-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  justify-content: center;
+}
+
+.notes-loading-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ═══════════════════════════════════════════════════════════
+   LOCKED WALL  (non-editors)
+   ═══════════════════════════════════════════════════════════ */
+.notes-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.notes-locked-icon {
+  color: var(--muted);
+  opacity: .5;
+  margin-bottom: 4px;
+}
+
+.notes-locked-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: .01em;
+}
+
+.notes-locked-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   WRAP + TOPBAR
+   ═══════════════════════════════════════════════════════════ */
+.notes-wrap {
+  padding: 0 0 40px;
+}
+
+.notes-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+
+.notes-owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notes-owner-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: .02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notes-readonly-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--surface2);
+  color: var(--muted);
+  letter-spacing: .04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notes-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity .15s, transform .1s;
+}
+
+.notes-add-btn:hover  { opacity: .88; }
+.notes-add-btn:active { transform: scale(.96); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════ */
+.notes-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.notes-empty-icon {
+  color: var(--muted);
+  opacity: .35;
+  margin-bottom: 4px;
+}
+
+.notes-empty-msg {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.notes-empty-hint {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: .7;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION LABELS
+   ═══════════════════════════════════════════════════════════ */
+.notes-section-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 16px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+
+.notes-section-label svg { opacity: .7; }
+
+.notes-section-label--rest {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   NOTE CARDS  (masonry-like single-column stack)
+   ═══════════════════════════════════════════════════════════ */
+.notes-grid {
+  padding: 8px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .12s, box-shadow .15s;
+  overflow: hidden;
+  position: relative;
+  /* entry animation */
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.note-card--in {
+  animation: cardIn .25s ease forwards;
+}
+
+@keyframes cardIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.note-card:hover {
+  border-color: var(--accent);
+  background: var(--surface2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+}
+
+.note-card:active {
+  transform: scale(.99);
+}
+
+/* Priority left-border accent */
+.note-card--pri-1 { border-left: 3px solid var(--pri1); }
+.note-card--pri-2 { border-left: 3px solid var(--pri2); }
+.note-card--pri-3 { border-left: 3px solid var(--pri3); }
+.note-card--pri-4 { border-left: 3px solid var(--pri4); }
+.note-card--pri-5 { border-left: 3px solid var(--pri5); }
+
+/* Subtle tinted background for priority cards */
+.note-card--pri-1 { background: linear-gradient(135deg, var(--pri1-dim) 0%, var(--surface) 60%); }
+.note-card--pri-2 { background: linear-gradient(135deg, var(--pri2-dim) 0%, var(--surface) 60%); }
+.note-card--pri-3 { background: linear-gradient(135deg, var(--pri3-dim) 0%, var(--surface) 60%); }
+.note-card--pri-4 { background: linear-gradient(135deg, var(--pri4-dim) 0%, var(--surface) 60%); }
+.note-card--pri-5 { background: linear-gradient(135deg, var(--pri5-dim) 0%, var(--surface) 60%); }
+
+.note-card-inner {
+  padding: 11px 13px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.note-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.note-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+  letter-spacing: .01em;
+}
+
+.note-untitled {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.note-card-preview {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-card-foot {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.note-card-date {
+  font-size: 10px;
+  color: var(--muted);
+  opacity: .7;
+  letter-spacing: .03em;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   BADGES & TAGS  (reused in cards + modal readonly)
+   ═══════════════════════════════════════════════════════════ */
+.note-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-badge--pri-1 { background: var(--pri1-dim); color: var(--pri1); border: 1px solid color-mix(in srgb, var(--pri1) 30%, transparent); }
+.note-badge--pri-2 { background: var(--pri2-dim); color: var(--pri2); border: 1px solid color-mix(in srgb, var(--pri2) 30%, transparent); }
+.note-badge--pri-3 { background: var(--pri3-dim); color: var(--pri3); border: 1px solid color-mix(in srgb, var(--pri3) 30%, transparent); }
+.note-badge--pri-4 { background: var(--pri4-dim); color: var(--pri4); border: 1px solid color-mix(in srgb, var(--pri4) 30%, transparent); }
+.note-badge--pri-5 { background: var(--pri5-dim); color: var(--pri5); border: 1px solid color-mix(in srgb, var(--pri5) 30%, transparent); }
+
+.note-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.note-tag--subj-physics   { background: rgba(91,156,246,.1);  color: var(--subj-physics);   border-color: rgba(91,156,246,.25); }
+.note-tag--subj-chemistry { background: rgba(249,115,22,.1);  color: var(--subj-chemistry); border-color: rgba(249,115,22,.25); }
+.note-tag--subj-maths     { background: rgba(167,139,250,.1); color: var(--subj-maths);     border-color: rgba(167,139,250,.25); }
+.note-tag--subj-general   { background: rgba(110,231,183,.1); color: var(--subj-general);   border-color: rgba(110,231,183,.25); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL OVERLAY + DIALOG
+   ═══════════════════════════════════════════════════════════ */
+.notes-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;       /* sheet-style on mobile */
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity .2s ease;
+  backdrop-filter: blur(2px);
+}
+
+.notes-modal-overlay.is-open {
+  opacity: 1;
+}
+
+.notes-modal-overlay.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.notes-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  transform: translateY(24px);
+  transition: transform .22s cubic-bezier(.25,.46,.45,.94);
+  box-shadow: 0 -8px 40px rgba(0,0,0,.3);
+}
+
+.notes-modal-overlay.is-open .notes-modal {
+  transform: translateY(0);
+}
+
+
+/* ── Modal header ─────────────────────────────────────────── */
+.nmodal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.nmodal-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+
+.nmodal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+
+.nmodal-close:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+
+/* ── Modal body ───────────────────────────────────────────── */
+.nmodal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nmodal-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 0 10px;
+  outline: none;
+  letter-spacing: .01em;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+
+.nmodal-title-input::placeholder { color: var(--muted); font-weight: 400; }
+.nmodal-title-input:focus         { border-bottom-color: var(--accent); }
+.nmodal-title-input[readonly]     { cursor: default; }
+
+.nmodal-title-input.shake {
+  animation: shake .35s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-5px); }
+  40%      { transform: translateX(5px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(3px); }
+}
+
+.nmodal-body-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  min-height: 100px;
+  max-height: 220px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+
+.nmodal-body-input::placeholder { color: var(--muted); }
+.nmodal-body-input:focus         { border-color: var(--accent); }
+.nmodal-body-input[readonly]     { cursor: default; resize: none; }
+
+
+/* ── Field rows (priority + subject) ────────────────────── */
+.nmodal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.nmodal-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nmodal-field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+
+/* ── Priority picker ─────────────────────────────────────── */
+.mpri-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mpri-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color .12s, background .12s, color .12s, transform .1s;
+}
+
+.mpri-btn:hover:not(:disabled) {
+  border-color: var(--text);
+  color: var(--text);
+  transform: scale(1.06);
+}
+
+.mpri-btn:active:not(:disabled) { transform: scale(.94); }
+
+/* Priority 0 — the "none" dash button */
+.mpri-btn--0 { font-size: 18px; color: var(--muted); }
+.mpri-btn--0.is-sel {
+  border-color: var(--muted);
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* Priority 1-5 selected states */
+.mpri-btn--1.is-sel { border-color: var(--pri1); background: var(--pri1-dim); color: var(--pri1); }
+.mpri-btn--2.is-sel { border-color: var(--pri2); background: var(--pri2-dim); color: var(--pri2); }
+.mpri-btn--3.is-sel { border-color: var(--pri3); background: var(--pri3-dim); color: var(--pri3); }
+.mpri-btn--4.is-sel { border-color: var(--pri4); background: var(--pri4-dim); color: var(--pri4); }
+.mpri-btn--5.is-sel { border-color: var(--pri5); background: var(--pri5-dim); color: var(--pri5); }
+
+/* Disabled (priority already used by another note) */
+.mpri-btn.is-used,
+.mpri-btn:disabled {
+  opacity: .32;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Small dot on disabled buttons */
+.mpri-used-dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.mpri-none {
+  line-height: 1;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.mpri-num {
+  line-height: 1;
+}
+
+
+/* ── Subject picker ──────────────────────────────────────── */
+.msubj-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.msubj-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  cursor: pointer;
+  transition: border-color .12s, background .12s, color .12s, transform .1s;
+}
+
+.msubj-btn:hover { border-color: var(--text); color: var(--text); }
+.msubj-btn:active { transform: scale(.96); }
+
+/* Selected states */
+.msubj-btn--none.is-sel       { border-color: var(--muted); color: var(--text); background: var(--surface); }
+.msubj-btn--physics.is-sel    { border-color: var(--subj-physics);   color: var(--subj-physics);   background: rgba(91,156,246,.1);  }
+.msubj-btn--chemistry.is-sel  { border-color: var(--subj-chemistry); color: var(--subj-chemistry); background: rgba(249,115,22,.1);  }
+.msubj-btn--maths.is-sel      { border-color: var(--subj-maths);     color: var(--subj-maths);     background: rgba(167,139,250,.1); }
+.msubj-btn--general.is-sel    { border-color: var(--subj-general);   color: var(--subj-general);   background: rgba(110,231,183,.1); }
+
+
+/* ── Readonly meta inside modal ──────────────────────────── */
+.nmodal-meta-readonly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+
+/* ── Modal footer ────────────────────────────────────────── */
+.nmodal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.nmodal-save-btn {
+  padding: 9px 22px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  border: none;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+
+.nmodal-save-btn:hover   { opacity: .88; }
+.nmodal-save-btn:active  { transform: scale(.96); }
+.nmodal-save-btn:disabled { opacity: .5; cursor: wait; }
+
+.nmodal-del-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s, transform .1s;
+}
+
+.nmodal-del-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239,68,68,.07);
+}
+
+.nmodal-del-btn--confirm {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239,68,68,.1);
+  animation: pulseRed .6s ease infinite alternate;
+}
+
+@keyframes pulseRed {
+  from { background: rgba(239,68,68,.07); }
+  to   { background: rgba(239,68,68,.18); }
+}
+
+.nmodal-del-btn:disabled { opacity: .5; cursor: wait; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+   ═══════════════════════════════════════════════════════════ */
+body.light .notes-modal-overlay {
+  background: rgba(0,0,0,.35);
+}
+
+body.light .note-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+}
+
+body.light .mpri-btn {
+  background: var(--surface);
+}
+
+body.light .msubj-btn {
+  background: var(--surface);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE  (tablet / desktop — centered sheet)
+   ═══════════════════════════════════════════════════════════ */
+@media (min-width: 540px) {
+  .notes-modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .notes-modal {
+    border-radius: 14px;
+    border-bottom: 1px solid var(--border);
+    max-height: 80vh;
+    transform: translateY(12px) scale(.97);
+  }
+
+  .notes-modal-overlay.is-open .notes-modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .notes-grid {
+    padding: 8px 16px 8px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DELETE BUTTON ON CARD
+   ═══════════════════════════════════════════════════════════ */
+.note-card-foot {
+  justify-content: space-between;
+}
+
+.note-del-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s, background .12s, color .12s, transform .1s;
+  flex-shrink: 0;
+}
+
+/* Show delete btn on card hover */
+.note-card:hover .note-del-btn {
+  opacity: 1;
+}
+
+/* Always visible on touch devices */
+@media (hover: none) {
+  .note-del-btn { opacity: 0.45; }
+}
+
+.note-del-btn:hover {
+  background: rgba(239,68,68,.12);
+  color: #ef4444;
+  transform: scale(1.1);
+}
+
+.note-del-btn:active {
+  transform: scale(.92);
+}
+
+/* Confirm state — turns into a green checkmark "really delete?" */
+.note-del-btn--confirm {
+  background: rgba(239,68,68,.15) !important;
+  color: #ef4444 !important;
+  opacity: 1 !important;
+  animation: pulseDelBtn .5s ease infinite alternate;
+}
+
+@keyframes pulseDelBtn {
+  from { background: rgba(239,68,68,.1); }
+  to   { background: rgba(239,68,68,.22); }
+}
+
+/* Long-press ripple on card */
+.note-card--pressed {
+  transform: scale(.97) !important;
+  opacity: .85;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   VIEW MODAL  (tap to open)
+   ═══════════════════════════════════════════════════════════ */
+.notes-modal--view .nmodal-header {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.nview-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nview-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nview-date {
+  font-size: 10px;
+  color: var(--muted);
+  opacity: .7;
+  letter-spacing: .03em;
+}
+
+.nview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nview-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+
+.nview-edit-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* View body */
+.nview-body {
+  gap: 14px !important;
+}
+
+.nview-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  letter-spacing: .01em;
+  word-break: break-word;
+}
+
+.nview-content {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.nview-empty {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  opacity: .6;
+}

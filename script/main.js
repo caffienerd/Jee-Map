@@ -5,6 +5,7 @@
 //   storage.js       → Storage  (localStorage cache only)
 //   sync.js          → Sync     (Supabase source of truth)
 //   auth.js          → Auth
+//   notes.js         → Notes
 
 // ── DATA MAP ──────────────────────────────────────────────────────────────
 const DATA = {
@@ -26,6 +27,7 @@ let activeSubject   = 'physics';
 let searchQuery     = '';
 let activeFilters   = new Set();
 let progressFilter  = null;
+let flagFilter      = false;  // true = show only flagged topics
 let filterOpen      = false;
 let activeView      = 'stats';
 
@@ -83,8 +85,9 @@ function initViewingUser() {
 function setViewingUser(userId) {
   viewingUserId = userId;
   Storage.setLastViewedUserId(userId);
-  // Invalidate test scores cache when switching users
+  // Invalidate caches when switching users
   _testScoresCache = null;
+  Notes.invalidate();
 }
 
 // ── VIEWER PICKER (shown to non-editors / visitors) ───────────────────────
@@ -179,6 +182,8 @@ function updateViewerBadge() {
 function renderView() {
   if (activeView === 'stats') {
     renderStats();
+  } else if (activeView === 'notes') {
+    Notes.render(viewingUserId);
   } else {
     render();
   }
@@ -217,6 +222,10 @@ function applyProgressFilter(chapters, subject, pf) {
   return chapters.filter((ch) => {
     const origIdx = DATA[subject].indexOf(ch);
     const topics  = ch.topics;
+
+    if (pf === 'flagged') {
+      return topics.some((_, ti) => getFlag(viewingUserId, subject, origIdx, ti));
+    }
 
     if (pf === 'fully-done') {
       return topics.every((_, ti) =>
@@ -297,12 +306,16 @@ function buildTopic(t, ti, origIdx, status, q) {
        </ul>`
     : '';
 
+  const flagged   = getFlag(viewingUserId, activeSubject, origIdx, ti);
+  const canEdit   = Auth.canEdit(viewingUserId);
+
   return `
-    <li class="topic-item ${hasSubs ? '' : 'leaf'} ${forceOpen && hasSubs ? 'open' : ''}"
+    <li class="topic-item ${hasSubs ? '' : 'leaf'} ${forceOpen && hasSubs ? 'open' : ''} ${flagged ? 'flagged' : ''}"
         data-topic-idx="${ti}" data-ch-orig="${origIdx}">
       <div class="topic-header">
         <span class="topic-dot ${cfg.cls}"></span>
         <span class="topic-name">${highlight(t.name, q)}</span>
+        ${canEdit ? `<button class="flag-btn ${flagged ? 'flagged' : ''}" data-topic-idx="${ti}" data-ch-orig="${origIdx}" title="flag for revision">⚑</button>` : (flagged ? `<span class="flag-indicator">⚑</span>` : '')}
         <button class="status-btn ${cfg.cls}" data-topic-idx="${ti}" data-ch-orig="${origIdx}" title="cycle status">
           ${status ? cfg.label : '·'}
         </button>
@@ -329,6 +342,31 @@ function filterData(chapters, q) {
     if (filteredTopics.length > 0) return { ...ch, topics: filteredTopics };
     return null;
   }).filter(Boolean);
+}
+
+
+// ── FLAG STORAGE ──────────────────────────────────────────────────────────
+function _flagKey(userId, subject, chIdx, topicIdx) {
+  return `flag:${userId}:${subject}:${chIdx}:${topicIdx}`;
+}
+
+function getFlag(userId, subject, chIdx, topicIdx) {
+  try { return localStorage.getItem('jeemap:' + _flagKey(userId, subject, chIdx, topicIdx)) === 'true'; }
+  catch { return false; }
+}
+
+function setFlag(userId, subject, chIdx, topicIdx, val) {
+  try {
+    const key = 'jeemap:' + _flagKey(userId, subject, chIdx, topicIdx);
+    if (val) localStorage.setItem(key, 'true');
+    else localStorage.removeItem(key);
+  } catch {}
+}
+
+function toggleFlag(userId, subject, chIdx, topicIdx) {
+  const current = getFlag(userId, subject, chIdx, topicIdx);
+  setFlag(userId, subject, chIdx, topicIdx, !current);
+  return !current;
 }
 
 function tagSlug(tag) {
@@ -360,6 +398,95 @@ async function loadTestScores() {
 
 function invalidateTestScoresCache() {
   _testScoresCache = null;
+}
+
+// ── JEE COUNTDOWN ─────────────────────────────────────────────────────────
+
+const JEE_DATES = [
+  { id: 'mains1', label: 'JEE Mains 1', date: new Date('2027-01-22T09:30:00') },
+  { id: 'mains2', label: 'JEE Mains 2', date: new Date('2027-04-05T09:30:00') },
+  { id: 'adv',    label: 'JEE Advanced', date: new Date('2027-05-23T09:00:00') },
+];
+
+let _cdInterval   = null;
+let _cdAutoTimer  = null;
+let _cdCurrent    = 0;
+let _cdSwipeStartX = 0;
+
+function _cdPad(n) { return String(n).padStart(2, '0'); }
+
+function _cdFormat(ms) {
+  if (ms <= 0) return '<span class="cd-unit">00<span class="cd-lbl">d</span></span><span class="cd-unit">00<span class="cd-lbl">h</span></span><span class="cd-unit">00<span class="cd-lbl">m</span></span><span class="cd-unit">00<span class="cd-lbl">s</span></span>';
+  const s   = Math.floor(ms / 1000);
+  const sec = s % 60;
+  const min = Math.floor(s / 60) % 60;
+  const hr  = Math.floor(s / 3600) % 24;
+  const day = Math.floor(s / 86400);
+  return `<span class="cd-unit">${_cdPad(day)}<span class="cd-lbl">d</span></span><span class="cd-unit">${_cdPad(hr)}<span class="cd-lbl">h</span></span><span class="cd-unit">${_cdPad(min)}<span class="cd-lbl">m</span></span><span class="cd-unit">${_cdPad(sec)}<span class="cd-lbl">s</span></span>`;
+}
+
+function _cdTick() {
+  const now = Date.now();
+  JEE_DATES.forEach((exam, i) => {
+    const el = document.getElementById(`cdTimer${i}`);
+    if (el) el.innerHTML = _cdFormat(exam.date - now);
+  });
+}
+
+function _cdGoTo(idx) {
+  const track = document.getElementById('jeeCountdownTrack');
+  if (!track) return;
+  _cdCurrent = (idx + 3) % 3;
+  track.style.transform = `translateX(-${_cdCurrent * 100}%)`;
+  document.querySelectorAll('.jee-cd-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === _cdCurrent);
+  });
+}
+
+function _cdResetAuto() {
+  clearInterval(_cdAutoTimer);
+  _cdAutoTimer = setInterval(() => _cdGoTo(_cdCurrent + 1), 10000);
+}
+
+function initCountdown() {
+  clearInterval(_cdInterval);
+  clearInterval(_cdAutoTimer);
+
+  _cdTick();
+  _cdInterval = setInterval(_cdTick, 1000);
+  _cdAutoTimer = setInterval(() => _cdGoTo(_cdCurrent + 1), 10000);
+
+  // Dot clicks
+  document.querySelectorAll('.jee-cd-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      _cdGoTo(parseInt(dot.dataset.idx));
+      _cdResetAuto();
+    });
+  });
+
+  // Nav buttons
+  document.getElementById('jeeNavPrev')?.addEventListener('click', () => {
+    _cdGoTo(_cdCurrent - 1);
+    _cdResetAuto();
+  });
+  document.getElementById('jeeNavNext')?.addEventListener('click', () => {
+    _cdGoTo(_cdCurrent + 1);
+    _cdResetAuto();
+  });
+
+  // Touch swipe
+  const wrap = document.getElementById('jeeCountdownWrap');
+  if (wrap) {
+    wrap.addEventListener('touchstart', e => {
+      _cdSwipeStartX = e.touches[0].clientX;
+    }, { passive: true });
+    wrap.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - _cdSwipeStartX;
+      if (Math.abs(dx) < 40) return;
+      _cdGoTo(dx < 0 ? _cdCurrent + 1 : _cdCurrent - 1);
+      _cdResetAuto();
+    }, { passive: true });
+  }
 }
 
 async function renderStats() {
@@ -452,6 +579,36 @@ async function renderStats() {
         </div>
       </div>
 
+      <!-- ── JEE COUNTDOWN ── -->
+      <div class="jee-countdown-wrap" id="jeeCountdownWrap">
+        <div class="jee-countdown-track" id="jeeCountdownTrack">
+          <div class="jee-countdown-slide" data-exam="mains1">
+            <div class="jee-cd-label">JEE Mains — Session 1</div>
+            <div class="jee-cd-date">22 Jan 2027</div>
+            <div class="jee-cd-timer" id="cdTimer0"></div>
+          </div>
+          <div class="jee-countdown-slide" data-exam="mains2">
+            <div class="jee-cd-label">JEE Mains — Session 2</div>
+            <div class="jee-cd-date">5 Apr 2027</div>
+            <div class="jee-cd-timer" id="cdTimer1"></div>
+          </div>
+          <div class="jee-countdown-slide" data-exam="adv">
+            <div class="jee-cd-label">JEE Advanced</div>
+            <div class="jee-cd-date">23 May 2027</div>
+            <div class="jee-cd-timer" id="cdTimer2"></div>
+          </div>
+        </div>
+        <div class="jee-cd-footer">
+          <button class="jee-cd-nav" id="jeeNavPrev">&#8249;</button>
+          <div class="jee-cd-dots">
+            <span class="jee-cd-dot active" data-idx="0"></span>
+            <span class="jee-cd-dot" data-idx="1"></span>
+            <span class="jee-cd-dot" data-idx="2"></span>
+          </div>
+          <button class="jee-cd-nav" id="jeeNavNext">&#8250;</button>
+        </div>
+      </div>
+
       <!-- ── SUBJECT MINI CARDS ── -->
       <div class="stats-subjects-row">
         ${subjectCards.map(c => `
@@ -521,6 +678,9 @@ async function renderStats() {
       </div>
 
     </div>`;
+
+  // ── JEE countdown init
+  initCountdown();
 
   // ── test tab switching
   main.querySelectorAll('.stats-test-tab').forEach(btn => {
@@ -702,6 +862,7 @@ function renderFilterPanel() {
   const tags  = window.TAGS[activeSubject];
 
   const progressFilters = [
+    { key: 'flagged',           label: '⚑ Flagged' },
     { key: 'theory-pending',    label: 'Theory pending' },
     { key: 'practiced-pending', label: 'Practice pending' },
     { key: 'adv-pending',       label: 'Adv pending' },
@@ -768,15 +929,27 @@ function toggleFilterPanel() {
 function attachEvents() {
   document.querySelectorAll('.chapter-header').forEach(h => {
     h.addEventListener('click', (e) => {
-      if (e.target.closest('.status-btn')) return;
+      if (e.target.closest('.status-btn') || e.target.closest('.flag-btn')) return;
       h.closest('.chapter').classList.toggle('open');
     });
   });
 
   document.querySelectorAll('.topic-item:not(.leaf) .topic-header').forEach(h => {
     h.addEventListener('click', (e) => {
-      if (e.target.closest('.status-btn')) return;
+      if (e.target.closest('.status-btn') || e.target.closest('.flag-btn')) return;
       h.closest('.topic-item').classList.toggle('open');
+    });
+  });
+
+  document.querySelectorAll('.flag-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!Auth.canEdit(viewingUserId)) return;
+      const chOrig   = parseInt(btn.dataset.chOrig);
+      const topicIdx = parseInt(btn.dataset.topicIdx);
+      const nowFlagged = toggleFlag(viewingUserId, activeSubject, chOrig, topicIdx);
+      btn.classList.toggle('flagged', nowFlagged);
+      btn.closest('.topic-item').classList.toggle('flagged', nowFlagged);
     });
   });
 
@@ -843,6 +1016,17 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.subject === 'stats') {
       activeView = 'stats';
       renderStats();
+      return;
+    }
+
+    if (tab.dataset.subject === 'notes') {
+      activeView = 'notes';
+      // Clear search/filter state — not relevant for notes
+      searchQuery = '';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterPanel').classList.remove('open');
+      filterOpen = false;
+      Notes.render(viewingUserId);
       return;
     }
 

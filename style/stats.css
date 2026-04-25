@@ -417,3 +417,120 @@ body.light .score-date { color-scheme: light; }
   padding: 4px 0 8px;
 }
 .stat-legend-key .leg { font-size: 0.68rem; }
+
+/* ── JEE COUNTDOWN WIDGET ─────────────────────────────────────────────── */
+
+.jee-countdown-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+.jee-countdown-track {
+  display: flex;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.jee-countdown-slide {
+  min-width: 100%;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jee-cd-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.jee-cd-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.jee-cd-timer {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1;
+  min-width: 38px;
+}
+
+.cd-lbl {
+  font-size: 0.55rem;
+  color: var(--muted);
+  margin-top: 3px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+/* dots */
+.jee-cd-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 12px;
+}
+
+.jee-cd-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.jee-cd-dot.active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+
+.jee-cd-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 12px;
+}
+
+.jee-cd-nav {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--muted);
+  font-size: 1.3rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1;
+  padding: 0;
+}
+.jee-cd-nav:hover { color: var(--accent); border-color: var(--accent); }
+
+/* move dots inside footer, remove old padding */
+.jee-cd-footer .jee-cd-dots {
+  padding: 0;
+}
