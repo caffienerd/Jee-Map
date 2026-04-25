@@ -2,7 +2,7 @@
 
 A personal JEE prep tracker built by Rishit and Vedanta to map out the entire JEE syllabus — topics, chapters, subtopics — and track progress through it.
 
-Live at **[caffienerd.github.io/Jee-Map](https://caffienerd.github.io/Jee-Map/)** · Also available as an Android app, please check [here](https://github.com/caffienerd/Jee-Map/releases/tag/untagged-4a64436410c6e3979efa)
+Live at **[caffienerd.github.io/Jee-Map](https://caffienerd.github.io/Jee-Map/)** · Also available as an Android app, please check [here](https://github.com/caffienerd/Jee-Map/releases)
 
 ---
 
