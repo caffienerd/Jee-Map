@@ -43,6 +43,8 @@ body.light .chapter.open { border-color: #c8c8c0; }
 html { font-size: 15px; }
 
 body {
+  max-width: 1250px;
+  margin: 0 auto;
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', sans-serif;

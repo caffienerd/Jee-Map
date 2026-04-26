@@ -135,7 +135,7 @@ const Sync = (() => {
   async function fetchNotes(userId) {
     const { data, error } = await window.DB
       .from('notes')
-      .select('id, title, body, priority, subject, created_at, updated_at')
+      .select('id, title, body, priority, subject, is_public, created_at, updated_at')
       .eq('user_id', userId)
       .order('priority', { ascending: true })
       .order('created_at', { ascending: false });
@@ -149,7 +149,7 @@ const Sync = (() => {
   }
 
   // saveNote handles both INSERT (id = null) and UPDATE (id = existing uuid).
-  async function saveNote(viewingUserId, { id, title, body, priority, subject }) {
+  async function saveNote(viewingUserId, { id, title, body, priority, subject, is_public }) {
     if (!Auth.canEdit(viewingUserId)) return null;
 
     if (id) {
@@ -161,6 +161,7 @@ const Sync = (() => {
           body,
           priority,
           subject:    subject || null,
+          is_public:  is_public ?? false,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -181,7 +182,8 @@ const Sync = (() => {
           title,
           body,
           priority,
-          subject:  subject || null,
+          subject:   subject || null,
+          is_public: is_public ?? false,
         })
         .select()
         .single();

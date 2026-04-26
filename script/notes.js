@@ -10,6 +10,7 @@
 //           1–5 = unique per user (enforced here + partial unique index in DB)
 //
 // Subject tag: physics | chemistry | maths | general | null
+// Visibility: is_public = false (default, private) | true (visible to everyone)
 
 const Notes = (() => {
 
@@ -100,26 +101,17 @@ const Notes = (() => {
       </div>`;
 
     const isEditor = Auth.isEditor();
-    if (!isEditor) {
-      main.innerHTML = `
-        <div class="notes-locked">
-          <div class="notes-locked-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <div class="notes-locked-title">private notes</div>
-          <div class="notes-locked-sub">only the authors can see their notes</div>
-        </div>`;
-      return;
-    }
+    const canEdit  = Auth.canEdit(viewingUserId);
+    const users    = Auth.getUserList();
+    const owner    = users.find(u => u.id === viewingUserId);
 
-    const notes   = await load(viewingUserId);
-    const canEdit = Auth.canEdit(viewingUserId);
-    const sorted  = _sorted(notes);
-    const users   = Auth.getUserList();
-    const owner   = users.find(u => u.id === viewingUserId);
+    const notes  = await load(viewingUserId);
+    // Non-editors only see public notes
+    const visible = isEditor ? notes : notes.filter(n => n.is_public);
+    const sorted  = _sorted(visible);
 
     // Group by priority bucket: pinned (1-5), then rest
-    const pinned  = sorted.filter(n => n.priority > 0);
+    const pinned   = sorted.filter(n => n.priority > 0);
     const unpinned = sorted.filter(n => n.priority === 0);
 
     main.innerHTML = `
@@ -127,7 +119,9 @@ const Notes = (() => {
         <div class="notes-topbar">
           <div class="notes-owner">
             <span class="notes-owner-name">${_esc(owner?.name)}'s notes</span>
-            ${!canEdit ? '<span class="notes-readonly-badge">read only</span>' : ''}
+            ${!isEditor
+              ? '<span class="notes-readonly-badge">public only</span>'
+              : !canEdit ? '<span class="notes-readonly-badge">read only</span>' : ''}
           </div>
           ${canEdit ? `
             <button class="notes-add-btn" id="notesAddBtn" title="Add note">
@@ -142,7 +136,8 @@ const Notes = (() => {
                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                </div>
                <div class="notes-empty-msg">no notes yet</div>
-               ${canEdit ? '<div class="notes-empty-hint">hit "new note" to add your first one</div>' : ''}
+               ${canEdit ? '<div class="notes-empty-hint">hit "new note" to add your first one</div>'
+                        : !isEditor ? '<div class="notes-empty-hint">no public notes yet</div>' : ''}
              </div>`
           : `<div class="notes-grid" id="notesGrid">
                ${pinned.length > 0 ? `
@@ -184,7 +179,7 @@ const Notes = (() => {
       ? note.body.replace(/\n+/g, ' ').slice(0, 100) + (note.body.length > 100 ? '…' : '')
       : '';
 
-    const hasMeta = note.priority > 0 || note.subject;
+    const hasMeta = note.priority > 0 || note.subject || note.is_public;
 
     return `
       <div class="note-card ${pri.cls ? 'note-card--' + pri.cls : ''}" data-note-id="${note.id}">
@@ -193,6 +188,7 @@ const Notes = (() => {
             <div class="note-card-meta">
               ${note.priority > 0 ? `<span class="note-badge note-badge--${pri.cls}">${pri.badge}</span>` : ''}
               ${note.subject    ? `<span class="note-tag note-tag--${subj.cls}">${subj.label}</span>` : ''}
+              ${note.is_public  ? `<span class="note-tag note-tag--public"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> public</span>` : ''}
             </div>` : ''}
           <div class="note-card-title">${
             note.title
@@ -293,7 +289,7 @@ const Notes = (() => {
 
     const pri  = PRI[note.priority]  || PRI[0];
     const subj = SUBJ[note.subject]  || SUBJ[null];
-    const hasMeta = note.priority > 0 || note.subject;
+    const hasMeta = note.priority > 0 || note.subject || note.is_public;
     const bodyHTML = note.body ? _esc(note.body).replace(/\n/g, '<br>') : '';
 
     document.body.insertAdjacentHTML('beforeend', `
@@ -306,6 +302,7 @@ const Notes = (() => {
                 <div class="nview-meta">
                   ${note.priority > 0 ? `<span class="note-badge note-badge--${pri.cls}">${pri.badge}</span>` : ""}
                   ${note.subject    ? `<span class="note-tag note-tag--${subj.cls}">${subj.label}</span>` : ""}
+                  ${note.is_public  ? `<span class="note-tag note-tag--public"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> public</span>` : ""}
                 </div>` : ""}
               <span class="nview-date">${_fmtDate(note.updated_at)}</span>
             </div>
@@ -424,10 +421,28 @@ const Notes = (() => {
                 </span>
                 <div class="msubj-row" id="msubjRow">${subjOptions}</div>
               </div>
+              <div class="nmodal-field-row nmodal-field-row--visibility">
+                <span class="nmodal-field-label">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  visibility
+                </span>
+                <button class="mvis-toggle ${(note?.is_public ?? false) ? 'is-public' : ''}" id="mvisToggle">
+                  <span class="mvis-icon mvis-icon--private">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    private
+                  </span>
+                  <span class="mvis-icon mvis-icon--public">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    public
+                  </span>
+                  <span class="mvis-knob"></span>
+                </button>
+              </div>
             </div>` : `
             <div class="nmodal-meta-readonly">
               ${note?.priority > 0 ? `<span class="note-badge note-badge--${PRI[note.priority].cls}">${PRI[note.priority].badge}</span>` : ''}
-              ${note?.subject ? `<span class="note-tag note-tag--${SUBJ[note.subject].cls}">${SUBJ[note.subject].label}</span>` : ''}
+              ${note?.subject   ? `<span class="note-tag note-tag--${SUBJ[note.subject].cls}">${SUBJ[note.subject].label}</span>` : ''}
+              ${note?.is_public ? `<span class="note-tag note-tag--public">public</span>` : ''}
             </div>`}
           </div>
 
@@ -483,6 +498,13 @@ const Notes = (() => {
       });
     });
 
+    // ── Visibility toggle
+    let selPublic = note?.is_public ?? false;
+    document.getElementById('mvisToggle')?.addEventListener('click', () => {
+      selPublic = !selPublic;
+      document.getElementById('mvisToggle').classList.toggle('is-public', selPublic);
+    });
+
     // ── Subject picker
     let selSubj = note?.subject ?? null;
     document.querySelectorAll('.msubj-btn').forEach(btn => {
@@ -514,8 +536,9 @@ const Notes = (() => {
       const saved = await Sync.saveNote(viewingUserId, {
         id:       note?.id ?? null,
         title, body,
-        priority: selPri,
-        subject:  selSubj || null,
+        priority:  selPri,
+        subject:   selSubj || null,
+        is_public: selPublic,
       });
 
       if (saved) {

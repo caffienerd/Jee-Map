@@ -894,3 +894,95 @@ body.light .msubj-btn {
   font-style: italic;
   opacity: .6;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PUBLIC BADGE  (card + modal)
+   ═══════════════════════════════════════════════════════════ */
+.note-tag--public {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(99,102,241,.12);
+  color: #818cf8;
+  border: 1px solid rgba(99,102,241,.3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   VISIBILITY TOGGLE  (edit modal)
+   ═══════════════════════════════════════════════════════════ */
+.nmodal-field-row--visibility {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mvis-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  width: 160px;
+  height: 32px;
+  flex-shrink: 0;
+  transition: border-color .2s;
+}
+
+.mvis-toggle.is-public {
+  border-color: #818cf8;
+}
+
+/* The two labels sit side-by-side, knob slides over them */
+.mvis-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 50%;
+  height: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  position: relative;
+  z-index: 1;
+  transition: color .2s;
+  pointer-events: none;
+}
+
+.mvis-icon--private {
+  color: var(--text);
+}
+
+.mvis-icon--public {
+  color: var(--muted);
+}
+
+.mvis-toggle.is-public .mvis-icon--private {
+  color: var(--muted);
+}
+
+.mvis-toggle.is-public .mvis-icon--public {
+  color: #818cf8;
+}
+
+/* Sliding knob */
+.mvis-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  transition: transform .2s cubic-bezier(.4,0,.2,1), background .2s;
+  pointer-events: none;
+}
+
+.mvis-toggle.is-public .mvis-knob {
+  transform: translateX(calc(100% + 0px));
+  background: rgba(99,102,241,.18);
+}

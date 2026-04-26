@@ -859,7 +859,9 @@ function formatDateShort(dateStr) {
 // ── FILTER PANEL ──────────────────────────────────────────────────────────
 function renderFilterPanel() {
   const panel = document.getElementById('filterPanel');
-  const tags  = window.TAGS[activeSubject];
+  if (activeView !== 'chapters') return;  // no filter panel for stats/notes
+  const tags = window.TAGS[activeSubject];
+  if (!tags) return;
 
   const progressFilters = [
     { key: 'flagged',           label: '⚑ Flagged' },
