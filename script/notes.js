@@ -462,9 +462,8 @@ const Notes = (() => {
     };
 
     document.getElementById('nmodalClose').addEventListener('click', close);
-    document.getElementById('notesModal').addEventListener('click', e => {
-      if (e.target.id === 'notesModal') close();
-    });
+    // No backdrop-click-to-close on the edit modal — accidental taps above
+    // the sheet would silently discard unsaved changes.
     document.addEventListener('keydown', function escHandler(e) {
       if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
     });
