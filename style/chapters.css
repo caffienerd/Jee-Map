@@ -240,8 +240,12 @@ body.light .status-btn.status--adv       { background: #dcf6ff !important; color
   flex-shrink: 0;
   transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   margin-right: 2px;
+  outline: none;
 }
+.flag-btn:focus { outline: none; box-shadow: none; }
+.flag-btn:active { opacity: 1; }
 .flag-btn:hover { color: #e05050; border-color: #e05050; }
 .flag-btn.flagged { background: #2a0000; color: #e05050; border-color: #e05050; }
 body.light .flag-btn.flagged { background: #ffe8e8; color: #c00000; border-color: #e05050; }

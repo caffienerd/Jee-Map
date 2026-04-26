@@ -925,7 +925,6 @@ function toggleFilterPanel() {
   updateFilterBtn();
 }
 
-// ── ATTACH EVENTS ─────────────────────────────────────────────────────────
 function attachEvents() {
   document.querySelectorAll('.chapter-header').forEach(h => {
     h.addEventListener('click', (e) => {
@@ -945,11 +944,15 @@ function attachEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!Auth.canEdit(viewingUserId)) return;
-      const chOrig   = parseInt(btn.dataset.chOrig);
-      const topicIdx = parseInt(btn.dataset.topicIdx);
+      const chOrig     = parseInt(btn.dataset.chOrig);
+      const topicIdx   = parseInt(btn.dataset.topicIdx);
       const nowFlagged = toggleFlag(viewingUserId, activeSubject, chOrig, topicIdx);
       btn.classList.toggle('flagged', nowFlagged);
       btn.closest('.topic-item').classList.toggle('flagged', nowFlagged);
+      btn.style.color = nowFlagged ? '' : '';  // force repaint
+      btn.style.borderColor = nowFlagged ? '#e05050' : 'var(--border)';
+      btn.style.background  = nowFlagged ? '#2a0000' : 'var(--surface2)';
+      btn.style.color       = nowFlagged ? '#e05050' : 'var(--muted)';
     });
   });
 
