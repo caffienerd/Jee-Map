@@ -24,7 +24,7 @@
 const Auth = (() => {
   const USERS = {
     rishit:  '8728f128-be6f-47b7-bb39-e11dc622e937',
-    vedanta: '1e062b7d-f8d8-4552-93e8-624a22023dd5',
+    vedanta: '63a3a690-9e02-4359-9276-1e63f69c33a7',
   };
 
   const USER_LIST = [
@@ -44,6 +44,7 @@ const Auth = (() => {
       _session = session;
       _render();
       if (_onChangeCallback) _onChangeCallback(session);
+      if (session) initPushNotifications();
     });
 
     // Register the deep link listener once at init so it works even if the
@@ -51,6 +52,9 @@ const Auth = (() => {
     _registerDeepLinkListener();
 
     _render();
+
+    // Request push for logged-out users too so they get public notifications.
+    if (!_session) initPushNotificationsAnon();
   }
 
   // ── Deep link handler ────────────────────────────────────────────────────
@@ -141,7 +145,17 @@ const Auth = (() => {
   }
 
   async function logout() {
+    const user = getUser();
+    if (user) {
+      // Remove this device's token so they stop receiving notifications.
+      await window.DB
+        .from('device_tokens')
+        .delete()
+        .eq('user_id', user.id);
+    }
     await window.DB.auth.signOut();
+    // Re-register as anonymous so they still get public notifications.
+    initPushNotificationsAnon();
   }
 
   // ── Callback ────────────────────────────────────────────────────────────
@@ -169,6 +183,79 @@ const Auth = (() => {
         </button>`;
       document.getElementById('loginBtn')?.addEventListener('click', loginWithGitHub);
     }
+  }
+
+  // ── PUSH NOTIFICATIONS (authenticated users) ──────────────────────────
+  async function initPushNotifications() {
+    if (!window.Capacitor?.isNativePlatform()) return;
+    const { PushNotifications } = window.Capacitor.Plugins;
+    if (!PushNotifications) return;
+
+    const result = await PushNotifications.requestPermissions();
+    if (result.receive !== 'granted') return;
+
+    await PushNotifications.register();
+
+    PushNotifications.addListener('registration', async (token) => {
+      const user = getUser();
+      if (!user) return;
+
+      // First remove any anonymous token for this device so we don't
+      // end up with duplicate rows (one anon, one authed) for same device.
+      await window.DB
+        .from('device_tokens')
+        .delete()
+        .eq('token', token.value)
+        .eq('is_anonymous', true);
+
+      await window.DB
+        .from('device_tokens')
+        .upsert({
+          user_id:      user.id,
+          token:        token.value,
+          is_anonymous: false,
+          updated_at:   new Date().toISOString(),
+        }, { onConflict: 'token' });
+      console.log('[Push] token saved:', token.value);
+    });
+
+    PushNotifications.addListener('registrationError', (err) => {
+      console.warn('[Push] registration error:', err);
+    });
+  }
+
+  // ── PUSH NOTIFICATIONS (anonymous / logged-out users) ─────────────────
+  // Anonymous users get public notifications (test scores, public notes).
+  // They never get private note notifications — edge function filters by
+  // user_id for those, and anon tokens have user_id = null.
+  async function initPushNotificationsAnon() {
+    if (!window.Capacitor?.isNativePlatform()) return;
+    const { PushNotifications } = window.Capacitor.Plugins;
+    if (!PushNotifications) return;
+
+    const result = await PushNotifications.requestPermissions();
+    if (result.receive !== 'granted') return;
+
+    await PushNotifications.register();
+
+    PushNotifications.addListener('registration', async (token) => {
+      const user = getUser();
+      if (user) return; // logged-in handled by initPushNotifications()
+
+      await window.DB
+        .from('device_tokens')
+        .upsert({
+          user_id:      null,
+          token:        token.value,
+          is_anonymous: true,
+          updated_at:   new Date().toISOString(),
+        }, { onConflict: 'token' });
+      console.log('[Push] anon token saved:', token.value);
+    });
+
+    PushNotifications.addListener('registrationError', (err) => {
+      console.warn('[Push] anon registration error:', err);
+    });
   }
 
   return {

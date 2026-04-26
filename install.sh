@@ -1,6 +1,9 @@
 #!/bin/bash
 cd /home/turtle/_projects/_repo/JeeMap/
 
+# Deploy edge functions
+supabase functions deploy notify
+
 # Icons
 cp -r icons/mipmap-mdpi/*       android/app/src/main/res/mipmap-mdpi/
 cp -r icons/mipmap-hdpi/*       android/app/src/main/res/mipmap-hdpi/

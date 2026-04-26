@@ -1,7 +1,7 @@
 // ── SERVICE WORKER ────────────────────────────────────────────────────────
 // Caches all app files so JEEMap works 100% offline after first load.
 
-const CACHE = 'jeemap-v2';
+const CACHE = 'jeemap-v5.3';
 
 const FILES = [
   './index.html',

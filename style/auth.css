@@ -2,10 +2,11 @@
 .auth-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   margin-left: auto;
   min-width: 0;
   flex-shrink: 1;
+  overflow: hidden;
 }
 
 /* ── LOGGED OUT: icon-only github button ── */
@@ -45,12 +46,12 @@
 
 .auth-name {
   font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
+  font-size: clamp(0.55rem, 1.8vw, 0.65rem);
   color: var(--accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 80px;
+  max-width: clamp(55px, 15vw, 90px);
 }
 
 .auth-logout {
@@ -78,10 +79,13 @@
 
 .viewer-badge-name {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: clamp(0.58rem, 1.8vw, 0.7rem);
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: clamp(45px, 12vw, 80px);
 }
 
 .viewer-badge-switch {
@@ -89,9 +93,9 @@
   border: 1px solid var(--border);
   border-radius: 4px;
   color: var(--accent);
-  font-size: 0.6rem;
+  font-size: clamp(0.52rem, 1.6vw, 0.6rem);
   font-family: 'DM Mono', monospace;
-  padding: 2px 6px;
+  padding: 2px 5px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
