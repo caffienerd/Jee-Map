@@ -1,5 +1,5 @@
 // ── CHEMISTRY DATA  ·  NEET UG 2026 ──────────────────────────────────────
-window.NEET_CHEM_DATA = [
+window.CHEM_DATA = [
   // ── PHYSICAL CHEMISTRY ────────────────────────────────────────────────────
   {
     chapter: "Some Basic Concepts of Chemistry",
@@ -480,66 +480,6 @@ window.NEET_CHEM_DATA = [
           "Electron gain enthalpy (EGA): generally more negative across period; O has less than F; Cl most negative",
           "Electronegativity: increases across period; decreases down group; Pauling scale",
           "Valence, oxidation states & chemical reactivity trends",
-        ],
-      },
-    ],
-  },
-
-  {
-    chapter: "Hydrogen",
-    tag: "IC",
-    class: "11",
-    topics: [
-      {
-        name: "Position, Occurrence & Isotopes",
-        subtopics: [
-          "Position in periodic table: resembles both alkali metals (Group 1) & halogens (Group 17)",
-          "Isotopes: protium (¹H), deuterium (²H/D), tritium (³H/T)",
-          "Occurrence: most abundant element in universe; found as H₂O, hydrocarbons, etc.",
-        ],
-      },
-      {
-        name: "Preparation & Properties",
-        subtopics: [
-          "Preparation: from water (electrolysis), steam reforming of methane (industrial), reaction of metals with acid",
-          "Properties: colourless, odourless, lightest gas; highly flammable",
-          "Hydrides: ionic (saline), covalent (molecular), metallic (non-stoichiometric)",
-          "Water: structure, properties (anomalous), hard & soft water, water of crystallisation",
-          "Hydrogen peroxide H₂O₂: preparation, structure (non-planar), properties, oxidising & reducing agent, uses",
-          "Heavy water D₂O: properties & uses (moderator in nuclear reactor)",
-          "Hydrogen as future fuel: fuel cells, advantages & challenges",
-        ],
-      },
-    ],
-  },
-
-  {
-    chapter: "s-Block Elements",
-    tag: "IC",
-    class: "11",
-    topics: [
-      {
-        name: "Alkali Metals (Group 1)",
-        subtopics: [
-          "Electronic config: ns¹; largest atoms in their periods; lowest IE",
-          "General properties: soft metals, low MP & BP, good conductors, highly reactive",
-          "Reactivity with water: Li < Na < K < Rb < Cs (increases down group)",
-          "Reaction with O₂: Li→Li₂O, Na→Na₂O₂, K/Rb/Cs→superoxides MO₂",
-          "Flame colours: Li (red), Na (yellow), K (violet), Rb (red-violet), Cs (blue)",
-          "Anomalous properties of Li vs other alkali metals; diagonal relationship with Mg",
-          "Important compounds of Na: NaOH (Castner-Kellner process), Na₂CO₃·10H₂O (washing soda), NaHCO₃ (baking soda), NaCl",
-        ],
-      },
-      {
-        name: "Alkaline Earth Metals (Group 2)",
-        subtopics: [
-          "Electronic config: ns²; smaller than Group 1; higher IE, MP, BP",
-          "Reactivity: generally less reactive than alkali metals; Mg reacts slowly with water",
-          "Flame colours: Ca (brick red), Sr (crimson), Ba (apple green)",
-          "Anomalous properties of Be; diagonal relationship with Al",
-          "Important compounds of Ca: CaO (quicklime), Ca(OH)₂ (slaked lime), CaCO₃ (limestone, marble), CaSO₄·2H₂O (gypsum), Plaster of Paris",
-          "Mg compounds: MgSO₄·7H₂O (Epsom salt), MgCO₃",
-          "Biological role: Na⁺/K⁺ (nerve impulse), Ca²⁺ (bones, clotting), Mg²⁺ (chlorophyll)",
         ],
       },
     ],
@@ -1233,51 +1173,6 @@ window.NEET_CHEM_DATA = [
           "Preparation of lyophilic sol: starch sol, gelatin sol (disperse in hot water)",
           "Preparation of lyophobic sol: Fe(OH)₃ sol by hydrolysis of FeCl₃ (peptisation); As₂S₃ sol",
           "Coagulation: adding electrolyte; Hardy-Schulze rule",
-        ],
-      },
-    ],
-  },
-
-  // ── SURFACE CHEMISTRY (Class 12 bonus — appears in NEET) ─────────────────
-  {
-    chapter: "Surface Chemistry",
-    tag: "PC",
-    class: "12",
-    topics: [
-      {
-        name: "Adsorption",
-        subtopics: [
-          "Adsorption vs absorption; adsorbate & adsorbent",
-          "Physisorption: weak van der Waals forces, reversible, multilayer, low T favoured",
-          "Chemisorption: strong chemical bond, irreversible, monolayer, high T, specific; follows Arrhenius",
-          "Freundlich adsorption isotherm: x/m = kp^(1/n); log(x/m) vs log p is linear",
-          "Factors affecting adsorption: nature of adsorbent (activated charcoal, silica gel), surface area, temperature, pressure",
-          "Applications: decolourisation of sugar by charcoal, gas masks, chromatography, heterogeneous catalysis",
-        ],
-      },
-      {
-        name: "Catalysis",
-        subtopics: [
-          "Homogeneous catalysis: catalyst & reactants in same phase; H₂SO₄ in ester hydrolysis",
-          "Heterogeneous catalysis: different phases; Fe in Haber process, V₂O₅ in Contact process, Ni in hydrogenation",
-          "Mechanism of heterogeneous catalysis: adsorption of reactants, reaction at surface, desorption of products",
-          "Promoters & poisons: promoters enhance catalyst activity (Al₂O₃ with Fe); poisons deactivate (CO poisons Pt)",
-          "Enzyme catalysis: biochemical catalysis; highly specific; lock-and-key model; effect of temperature, pH, substrate concentration",
-          "Autocatalysis: product acts as catalyst (e.g. KMnO₄ + oxalic acid: Mn²⁺ is product-catalyst)",
-        ],
-      },
-      {
-        name: "Colloids",
-        subtopics: [
-          "Classification: based on nature of dispersed phase & medium (8 types from solid/liquid/gas combinations)",
-          "Lyophilic (solvent-loving): stable, easily prepared, not coagulated easily (e.g. starch, gelatin)",
-          "Lyophobic (solvent-hating): unstable, require stabiliser, easily coagulated (e.g. Fe(OH)₃, As₂S₃)",
-          "Preparation of lyophobic sols: condensation (chemical methods) & dispersion (breaking down)",
-          "Properties: Tyndall effect (scattering of light), Brownian motion, electrophoresis, coagulation",
-          "Hardy-Schulze rule: coagulating power ∝ valency of coagulating ion (higher valency → less electrolyte needed)",
-          "Protective colloids: lyophilic colloids protect lyophobic (gold number; lower gold number = better protective colloid)",
-          "Emulsions: oil-in-water (O/W: milk, vanishing cream) & water-in-oil (W/O: butter, cold cream); emulsifier stabilises",
-          "Applications of colloids: medicine (colloidal gold, argyrol), food industry, industrial processes, water purification (alum coagulates clay)",
         ],
       },
     ],

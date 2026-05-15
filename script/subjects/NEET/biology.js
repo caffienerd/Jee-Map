@@ -587,102 +587,6 @@ window.BIO_DATA = [
 
   // ── PLANT PHYSIOLOGY ──────────────────────────────────────────────────────
   {
-    chapter: "Transport in Plants",
-    tag: "PlantPhysio",
-    class: "11",
-    topics: [
-      {
-        name: "Means of Transport",
-        subtopics: [
-          "Diffusion: passive; down concentration gradient; no energy; short distances",
-          "Facilitated diffusion: membrane proteins (channels & carriers); still passive; faster; specific",
-          "Active transport: against gradient; energy (ATP); carrier proteins",
-          "Osmosis: diffusion of water across semipermeable membrane",
-          "Water potential (Ψw): Ψw = Ψs (solute) + Ψp (pressure); pure water Ψw = 0",
-          "Plasmolysis: loss of water → cell membrane shrinks away from cell wall",
-        ],
-      },
-      {
-        name: "Long Distance Transport",
-        subtopics: [
-          "Apoplast pathway: through cell walls & intercellular spaces (no crossing membranes); faster",
-          "Symplast pathway: through cytoplasm via plasmodesmata; slower",
-          "Transmembrane pathway: across membranes",
-          "Casparian strip: suberin band in endodermal cell walls; blocks apoplast; forces symplast entry → controls ion uptake",
-        ],
-      },
-      {
-        name: "Absorption of Water & Mineral Salts",
-        subtopics: [
-          "Root pressure: active absorption; generates positive pressure; causes guttation (through hydathodes) at night",
-          "Guttation vs transpiration: guttation = liquid water from hydathodes; transpiration = water vapour from stomata & cuticle",
-          "Minerals: passive (down electrochemical gradient) & active (against gradient; carrier-mediated); major elements: N, P, K, Ca, Mg, S; micronutrients: Fe, Mn, Zn, Cu, Mo, B, Cl",
-        ],
-      },
-      {
-        name: "Transpiration",
-        subtopics: [
-          "Stomatal (80–90%): through stomata; controlled by guard cells",
-          "Cuticular (10–20%): through cuticle; reduced by thick waxy cuticle in xerophytes",
-          "Lenticular: through lenticels (bark)",
-          "Guard cell mechanism: K⁺ ion hypothesis (ABA closes stomata; blue light opens via proton pump → K⁺ influx → osmotic entry of water → guard cell turgid → pore opens)",
-          "Factors affecting: light (opens), temperature (increases), humidity (decreases), wind (increases), CO₂ (high CO₂ closes)",
-          "Transpiration pull — cohesion-tension theory (Dixon & Joly): cohesion of water molecules + adhesion to xylem walls + tension created by transpiration → ascent of sap",
-        ],
-      },
-      {
-        name: "Translocation of Organic Solutes",
-        subtopics: [
-          "Phloem transport: source → sink; bidirectional but unidirectional at any given time",
-          "Munch's pressure flow hypothesis (mass flow): loading at source (high osmotic pressure → water entry → high turgor) → unloading at sink (low osmotic pressure → water leaves → low turgor) → pressure gradient drives flow",
-          "Phloem loading: symplastic (plasmodesmata) & apoplastic (sucrose transporter SUT/SUC) routes",
-        ],
-      },
-    ],
-  },
-
-  {
-    chapter: "Mineral Nutrition",
-    tag: "PlantPhysio",
-    class: "11",
-    topics: [
-      {
-        name: "Essential Mineral Elements",
-        subtopics: [
-          "Criteria (Arnon & Stout): essential for life cycle, not replaceable, direct metabolic role",
-          "Macronutrients (>1 mmol/kg dry wt): C, H, O, N, P, K, Ca, Mg, S",
-          "Micronutrients (<1 mmol/kg dry wt): Fe, Mn, Zn, Cu, Mo, B, Cl, Ni",
-          "Beneficial elements: Na, Si, Co (for some plants)",
-        ],
-      },
-      {
-        name: "Deficiency Symptoms & Functions",
-        subtopics: [
-          "N: chlorosis (older leaves first — mobile); retarded growth; pale yellow",
-          "P: purplish/reddish pigmentation (anthocyanin); necrosis",
-          "K: marginal scorch of leaves; premature ageing; wilting",
-          "Ca: tip burn; die-back; twisted young leaves",
-          "Mg: interveinal chlorosis (mobile); cofactor of RuBisCO, chlorophyll centre",
-          "Fe: interveinal chlorosis of young leaves (immobile); cofactor of cytochromes",
-          "Mn: grey speck (oats); interveinal chlorosis (young leaves); cofactor of oxygen evolution in PS II",
-          "Toxicity symptoms: excess Mn competes with Ca, Mg, Fe",
-        ],
-      },
-      {
-        name: "Nitrogen Metabolism",
-        subtopics: [
-          "Nitrogen cycle: N₂ → NH₄⁺ (fixation) → NO₂⁻ → NO₃⁻ (nitrification) → back to N₂ (denitrification)",
-          "Biological N₂ fixation: nitrogenase enzyme (Mo-Fe protein + Fe protein); requires anaerobic conditions (O₂ sensitive); produces NH₃; requires 16 ATP per N₂",
-          "Free-living fixers: Azotobacter (aerobic), Clostridium (anaerobic), Cyanobacteria (Nostoc, Anabaena, Tolypothrix)",
-          "Symbiotic fixers: Rhizobium — legume root nodules; Frankia — non-legumes; Anabaena in Azolla (rice fields)",
-          "Fate of fixed N: glutamate dehydrogenase (GDH) or glutamine synthetase–glutamate synthase (GS-GOGAT) pathway → assimilation into amino acids",
-          "Nitrate reduction: NO₃⁻ → NO₂⁻ (nitrate reductase, Mo-containing) → NH₄⁺ (nitrite reductase)",
-        ],
-      },
-    ],
-  },
-
-  {
     chapter: "Photosynthesis in Higher Plants",
     tag: "PlantPhysio",
     class: "11",
@@ -846,53 +750,6 @@ window.BIO_DATA = [
   },
 
   // ── HUMAN PHYSIOLOGY ──────────────────────────────────────────────────────
-  {
-    chapter: "Digestion & Absorption",
-    tag: "HumanPhysio",
-    class: "11",
-    topics: [
-      {
-        name: "Human Alimentary Canal",
-        subtopics: [
-          "Mouth → Pharynx → Oesophagus → Stomach → Small intestine (duodenum, jejunum, ileum) → Large intestine (caecum, colon, rectum) → Anus",
-          "Histology: 4 layers — serosa (peritoneum), muscularis externa (longitudinal + circular smooth muscle; Auerbach's plexus), submucosa (Meissner's plexus; glands in oesophagus & duodenum), mucosa (innermost; villi in small intestine)",
-          "Liver (largest gland): bile production; storage (glycogen, fat-soluble vitamins, Fe); detoxification; urea cycle; cholesterol synthesis",
-          "Pancreas (mixed gland): exocrine (acini → pancreatic juice via Wirsung duct) + endocrine (islets of Langerhans)",
-        ],
-      },
-      {
-        name: "Digestion",
-        subtopics: [
-          "Mouth: salivary amylase (ptyalin) — starch → maltose; optimum pH 6.8; denatured by HCl in stomach",
-          "Stomach: HCl (kills bacteria, activates pepsinogen → pepsin); pepsin (pH 2): proteins → peptides; gastric lipase; renin (coagulates milk casein — infants); mucus (protects gastric mucosa); churning → chyme",
-          "Small intestine: bile (emulsification of fats; no enzyme; bile salts: cholate, deoxycholate); pancreatic juice: trypsinogen (activated by enterokinase → trypsin) + chymotrypsinogen + elastase + pancreatic amylase + pancreatic lipase + nucleases; intestinal juice (succus entericus): maltase, lactase, sucrase, peptidases (aminopeptidase, dipeptidase), intestinal lipase",
-          "Final products: glucose, fructose, galactose (carbohydrates); amino acids (proteins); fatty acids + glycerol + monoglycerides (fats)",
-        ],
-      },
-      {
-        name: "Absorption & Assimilation",
-        subtopics: [
-          "Small intestine: primary site; villi & microvilli (brush border) increase surface area → ~600× fold",
-          "Glucose & amino acids: absorbed by active transport into blood (portal circulation → liver)",
-          "Fatty acids & glycerol: absorbed into lacteals (lymph) → chylomicrons → thoracic duct → blood",
-          "Large intestine: water, minerals, drugs, vitamins (produced by bacteria) absorption; faeces formation",
-          "Assimilation: nutrients used for energy (β-oxidation of FA; gluconeogenesis) or anabolism (protein synthesis, fat storage)",
-        ],
-      },
-      {
-        name: "Disorders",
-        subtopics: [
-          "Jaundice: bile pigments in blood → yellowish skin; hepatic, obstructive, haemolytic types",
-          "Vomiting: reverse peristalsis; mediated by vomiting centre (medulla oblongata)",
-          "Diarrhoea: abnormal frequent liquid stools; impairs absorption",
-          "Constipation: hard faeces; decreased motility",
-          "Indigestion (Dyspepsia): incomplete digestion; pain, heartburn",
-          "PEM (Protein Energy Malnutrition): Kwashiorkor (protein deficiency), Marasmus (energy + protein)",
-        ],
-      },
-    ],
-  },
-
   {
     chapter: "Breathing & Exchange of Gases",
     tag: "HumanPhysio",
@@ -1252,36 +1109,6 @@ window.BIO_DATA = [
   },
 
   // ── REPRODUCTION ──────────────────────────────────────────────────────────
-  {
-    chapter: "Reproduction in Organisms",
-    tag: "Reproduction",
-    class: "12",
-    topics: [
-      {
-        name: "Asexual Reproduction",
-        subtopics: [
-          "Binary fission: Amoeba, Paramecium, bacteria; plane of division varies",
-          "Budding: Hydra, Yeast (constriction of parent body)",
-          "Fragmentation: Spirogyra, Planaria; each fragment → new organism",
-          "Regeneration: Planaria (cut pieces regenerate); different from simple repair",
-          "Sporulation (spore formation): fungi (conidia, zoospores), bacteria (endospores), Mucor (sporangiospores)",
-          "Vegetative propagation in plants: natural (rhizome, bulb, corm, runner) and artificial (cutting, grafting, layering, tissue culture)",
-          "Parthenogenesis: development of egg without fertilisation; Apis (drones from unfertilised eggs), Komodo dragon, rotifers, some lizards",
-        ],
-      },
-      {
-        name: "Sexual Reproduction — Events",
-        subtopics: [
-          "Pre-fertilisation: gametogenesis (formation of gametes — meiotic division); gamete transfer",
-          "Fertilisation: syngamy (fusion of gametes); external (frogs, fish, most aquatic) vs internal (reptiles, birds, mammals)",
-          "Post-fertilisation: zygote formation → embryogenesis (cleavage → morula → blastula/blastocyst → gastrula → organogenesis)",
-          "Juvenile → reproductive maturity; semelparous (breed once: Pacific salmon, bamboo) vs iteroparous (breed repeatedly: most animals & perennial plants)",
-          "Seasonal breeders (deer, frogs) vs continuous breeders (humans, cattle)",
-        ],
-      },
-    ],
-  },
-
   {
     chapter: "Sexual Reproduction in Flowering Plants",
     tag: "Reproduction",
