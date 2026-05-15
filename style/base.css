@@ -92,3 +92,40 @@ main {
     background: var(--border);
     border-radius: 1px;
 }
+
+/* ── PICKER EXAM BADGE ── */
+.picker-exam-badge {
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.picker-exam-badge--jee {
+    background: rgba(91, 156, 246, 0.15);
+    color: var(--phy);
+    border: 1px solid rgba(91, 156, 246, 0.3);
+}
+
+.picker-exam-badge--neet {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--bio);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+/* light mode overrides */
+body.light .picker-exam-badge--jee {
+    background: rgba(26, 111, 212, 0.1);
+    color: var(--phy);
+    border-color: rgba(26, 111, 212, 0.25);
+}
+
+body.light .picker-exam-badge--neet {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--bio);
+    border-color: rgba(22, 163, 74, 0.25);
+}

@@ -1325,6 +1325,7 @@ function formatDateShort(dateStr) {
 // ── FILTER PANEL ──────────────────────────────────────────────────────────
 function renderFilterPanel() {
   const panel = document.getElementById("filterPanel");
+  if (!panel) return;
   if (activeView !== "chapters") return;
   const tags = window.TAGS[activeSubject];
   if (!tags) return;
@@ -1390,6 +1391,7 @@ function renderFilterPanel() {
 
 function updateFilterBtn() {
   const btn = document.getElementById("filterBtn");
+  if (!btn) return;
   const hasActive = activeFilters.size > 0 || progressFilter !== null;
   btn.classList.toggle("active", hasActive || filterOpen);
   const countEl = btn.querySelector(".filter-count");
