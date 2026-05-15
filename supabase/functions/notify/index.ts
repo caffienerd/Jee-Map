@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
         notifyAll = true; // public note → everyone
       } else {
         title = `${actorName} posted a note`;
-        body = record.title || "New private note";
+        body = "open the app to see it";
         notifyAll = false; // private note → only the other editor
       }
     } else {
@@ -154,6 +154,13 @@ Deno.serve(async (req) => {
 
     if (!notifyAll) {
       // Private note: only same-group editors (e.g. Rishit ↔ Vedanta), not guests, not cross-group
+      // If sameGroupIds is empty (e.g. Adwiti is the only NEET user), nobody gets notified.
+      if (sameGroupIds.length === 0) {
+        console.log(
+          "[notify] no same-group recipients — skipping private note notification",
+        );
+        return new Response("no recipients", { status: 200 });
+      }
       query = query.in("user_id", sameGroupIds);
     }
 
