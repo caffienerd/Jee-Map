@@ -1,5 +1,5 @@
 // ── CHEMISTRY DATA  ·  NEET UG 2026 ──────────────────────────────────────
-window.CHEM_DATA = [
+window.NEET_CHEM_DATA = [
   // ── PHYSICAL CHEMISTRY ────────────────────────────────────────────────────
   {
     chapter: "Some Basic Concepts of Chemistry",
